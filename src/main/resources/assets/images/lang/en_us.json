@@ -1,0 +1,9 @@
+{
+  "block.images.picture_frame": "Picture Frame",
+  "block.images.wallpaper": "Wallpaper",
+  "item.images.printaxe": "Printaxe",
+  "selectImage.title" : "Set Image Url",
+  "images.printaxe.description" : "Shift+RClick to open the GUI",
+  "images.picture_frame.description" : "Use with a Printaxe to display an image",
+  "debug.reload_images.message" : "Reloading all images"
+}

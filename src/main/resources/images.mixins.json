@@ -1,0 +1,19 @@
+{
+  "required": true,
+  "package": "net.sorenon.images.mixin",
+  "compatibilityLevel": "JAVA_8",
+  "client": [
+    "ClientPlayerEntityMixin",
+    "KeyboardMixin",
+    "MinecraftClientMixin",
+    "WorldRendererMixin",
+    "RenderPhaseAccessor"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  },
+  "mixins": [
+    "DyeColorAccessor",
+    "ItemAccessor"
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "id": "images",
+  "version": "${version}",
+
+  "name": "Images",
+  "description": "Adds picture frames for displaying imgur images in game",
+  "authors": [
+    "Sorenon"
+  ],
+  "icon": "assets/images/pack.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "net.sorenon.images.init.ImagesMod"
+    ],
+    "client": [
+      "net.sorenon.images.init.ImagesModClient"
+    ]
+  },
+  "mixins": [
+    "images.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.7.1",
+    "fabric": ">=0.11.8",
+    "fabric-language-kotlin": ">=1.3.71",
+    "minecraft": ">=1.16.1"
+  }
+}
