@@ -65,15 +65,15 @@ class WallpaperRenderer(dispatcher: BlockEntityRenderDispatcher?) : BlockEntityR
         matrices.multiply(Vector3f.POSITIVE_X.getDegreesQuaternion(pitch))
         matrices.translate(-0.5, -0.5, -0.5 + 0.01f / 16.0f)
 
-        val matrix4f = matrices.peek().model
-        val imageID = face.imageID
-        if (imageID == null) {
-            renderSimpleQuad(vertexConsumers, nullTexture, matrix4f, light)
-        }
-        else {
-            val image = ImagesApi.getInstance().getImageOrPlaceholder(imageID)
-            renderImage(face, image, vertexConsumers, matrix4f, light)
-        }
+//        val matrix4f = matrices.peek().model
+//        val imageID = face.imageID
+//        if (imageID == null) {
+//            renderSimpleQuad(vertexConsumers, nullTexture, matrix4f, light)
+//        }
+//        else {
+//            val image = ImagesApi.getInstance().getImageOrPlaceholder(imageID)
+//            renderImage(face, image, vertexConsumers, matrix4f, light)
+//        }
 
         matrices.pop()
     }

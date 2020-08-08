@@ -22,13 +22,16 @@ abstract class KeyboardMixin {
             return;
         }
 
-        if (key == 'A' || key == 'I') {
+        if (key == 'I') {
+            this.debugWarn("debug.reload_images.message");
+            ImagesModClient.Companion.reloadConfig();
             ImagesModClient.Companion.getImageDB().reload();
-
-            if (key == 'I') {
-                this.debugWarn("debug.reload_images.message");
-                cir.setReturnValue(true);
-            }
+            cir.setReturnValue(true);
+        }
+        else if (key == 'T') {
+            this.debugWarn("debug.reload_images.message");
+            ImagesModClient.Companion.reloadConfig();
+            ImagesModClient.Companion.getImageDB().reload();
         }
     }
 }

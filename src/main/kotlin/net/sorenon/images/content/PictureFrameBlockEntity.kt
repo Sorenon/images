@@ -3,13 +3,14 @@ package net.sorenon.images.content
 import net.fabricmc.fabric.api.block.entity.BlockEntityClientSerializable
 import net.fabricmc.fabric.api.util.NbtType
 import net.minecraft.block.BlockState
-import net.minecraft.block.HorizontalFacingBlock
 import net.minecraft.block.entity.BlockEntity
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.nbt.NbtHelper
 import net.minecraft.util.math.BlockPos
 import net.minecraft.util.math.Direction
 import net.sorenon.images.init.ImagesMod
+import java.net.MalformedURLException
+import java.net.URL
 import java.util.*
 
 class PictureFrameBlockEntity : BlockEntity(ImagesMod.PICTURE_FRAME_BLOCK_ENTITY), BlockEntityClientSerializable {
@@ -98,7 +99,7 @@ class PictureFrameBlockEntity : BlockEntity(ImagesMod.PICTURE_FRAME_BLOCK_ENTITY
 
     sealed class Face(val uuid: UUID) {
         class Master(
-            var texture: String,
+            var url: URL,
             val height: Int,
             val width: Int,
             val direction: Direction?,
@@ -113,7 +114,7 @@ class PictureFrameBlockEntity : BlockEntity(ImagesMod.PICTURE_FRAME_BLOCK_ENTITY
             tag.putUuid("id", uuid)
             when (this) {
                 is Master -> {
-                    tag.putString("texture", texture)
+                    tag.putString("url", url.toString())
                     tag.putInt("height", height)
                     tag.putInt("width", width)
                     tag.putInt("colour", colour)
@@ -129,23 +130,31 @@ class PictureFrameBlockEntity : BlockEntity(ImagesMod.PICTURE_FRAME_BLOCK_ENTITY
         companion object {
             fun fromTag(isVertical: Boolean, tag: CompoundTag): Face {
                 val uuid = tag.getUuid("id")
-                if (tag.contains("texture", NbtType.STRING)) {
-                    val texture = tag.getString("texture")
-                    val direction = if (isVertical) {
-                        val dir = Direction.byId(tag.getInt("direction"))
-                        if (dir.axis != Direction.Axis.Y) dir else Direction.NORTH
-                    } else null
 
-                    return Master(
-                        texture,
-                        tag.getInt("height"),
-                        tag.getInt("width"),
-                        direction,
-                        uuid,
-                        tag.getInt("colour")
-                    )
+                val url = try {
+                    when {
+                        tag.contains("url", NbtType.STRING) -> URL(tag.getString("url"))
+                        tag.contains("texture", NbtType.STRING) ->
+                            URL("https://i.imgur.com/${tag.getString("texture")}.jpg")
+                        else -> return Slave(NbtHelper.toBlockPos(tag.getCompound("masterPos")), uuid)
+                    }
+                } catch (_: MalformedURLException) {
+                    return Slave(NbtHelper.toBlockPos(tag.getCompound("masterPos")), uuid)
                 }
-                return Slave(NbtHelper.toBlockPos(tag.getCompound("masterPos")), uuid)
+
+                val direction = if (isVertical) {
+                    val dir = Direction.byId(tag.getInt("direction"))
+                    if (dir.axis != Direction.Axis.Y) dir else Direction.NORTH
+                } else null
+
+                return Master(
+                    url,
+                    tag.getInt("height"),
+                    tag.getInt("width"),
+                    direction,
+                    uuid,
+                    tag.getInt("colour")
+                )
             }
         }
     }

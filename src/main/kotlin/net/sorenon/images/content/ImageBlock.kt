@@ -190,7 +190,7 @@ abstract class ImageBlock(settings: Settings?) : Block(settings), BlockEntityPro
         }
     }
 
-    class PictureFrameBlock(settings: Settings) : ImageBlock(settings) {
+    class PictureFrameBlock(settings: Settings) : ImageBlock(settings), Waterloggable {
         init {
             defaultState =
                 defaultState.with(WATERLOGGED, false)
@@ -267,13 +267,14 @@ abstract class ImageBlock(settings: Settings?) : Block(settings), BlockEntityPro
             return super.getPlacementState(ctx)?.with(WATERLOGGED, fluidState.fluid == Fluids.WATER)
         }
 
+        override fun getFluidState(state: BlockState): FluidState {
+            return if (state.get(AbstractSignBlock.WATERLOGGED)) Fluids.WATER.getStill(false)
+            else super.getFluidState(state)
+        }
+
         override fun appendProperties(builder: StateManager.Builder<Block?, BlockState?>) {
             super.appendProperties(builder)
             builder.add(WATERLOGGED)
-        }
-
-        override fun getFluidState(state: BlockState): FluidState? {
-            return if (state.get(WATERLOGGED)) Fluids.WATER.getStill(false) else Fluids.EMPTY.defaultState
         }
     }
 }

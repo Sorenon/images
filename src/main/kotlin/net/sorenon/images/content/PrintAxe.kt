@@ -2,6 +2,7 @@ package net.sorenon.images.content
 
 import io.netty.buffer.Unpooled
 import net.fabricmc.fabric.api.network.ServerSidePacketRegistry
+import net.fabricmc.fabric.api.server.PlayerStream
 import net.fabricmc.fabric.api.util.NbtType
 import net.minecraft.client.item.TooltipContext
 import net.minecraft.entity.LivingEntity
@@ -13,7 +14,6 @@ import net.minecraft.item.ToolMaterials
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.nbt.NbtHelper
 import net.minecraft.network.PacketByteBuf
-import net.minecraft.screen.SimpleNamedScreenHandlerFactory
 import net.minecraft.text.LiteralText
 import net.minecraft.text.Text
 import net.minecraft.text.TranslatableText
@@ -25,8 +25,11 @@ import net.minecraft.util.math.Direction
 import net.minecraft.world.RayTraceContext
 import net.minecraft.world.World
 import net.sorenon.images.init.ImagesMod
+import net.sorenon.images.init.ImagesMod.Companion.S2C_PRINT_BOOM
 import net.sorenon.images.mixin.ItemAccessor
 import java.io.Closeable
+import java.net.MalformedURLException
+import java.net.URL
 import java.util.*
 import kotlin.math.max
 import kotlin.math.min
@@ -44,6 +47,25 @@ class PrintAxe(settings: Settings) : AxeItem(ToolMaterials.IRON, 5.0f, -3.0f, se
         context: TooltipContext
     ) {
         tooltip.add(TranslatableText("images.printaxe.description").formatted(Formatting.BLUE))
+        ItemInstance(stack).use {
+            if (it.url != null) {
+                var str = it.url!!.toString()
+                if (str.length > 24) {
+                    str = str.substring(0, 24).plus('…')
+                }
+                tooltip.add(LiteralText(str).formatted(Formatting.GREEN))
+            }
+        }
+    }
+
+    override fun postHit(stack: ItemStack, target: LivingEntity, attacker: LivingEntity): Boolean {
+        val data = PacketByteBuf(Unpooled.buffer())
+        data.writeInt(target.entityId)
+
+        PlayerStream.watching(target).forEach {
+            ServerSidePacketRegistry.INSTANCE.sendToPlayer(it, S2C_PRINT_BOOM, data)
+        }
+        return super.postHit(stack, target, attacker)
     }
 
     override fun getUseAction(stack: ItemStack?): UseAction? {
@@ -61,18 +83,20 @@ class PrintAxe(settings: Settings) : AxeItem(ToolMaterials.IRON, 5.0f, -3.0f, se
 
         if (!world.isClient && blockState.block == ImagesMod.PICTURE_FRAME_BLOCK) {
             ItemInstance(context.stack).use { data: ItemInstance ->
-                if (data.texture.isEmpty()) {
+                val url = data.url
+                if (url == null) {
                     val player = context.player
                     if (player != null) openGUI(player, context.hand, data)
+                    data.start = context.blockPos
+                    data.side = context.side
+                    return ActionResult.SUCCESS
                 }
 
                 val start = data.start
                 if (start == null) {
-                    println("start")
                     data.start = context.blockPos
                     data.side = context.side
                 } else {
-                    println("try end")
                     data.start = null
                     val side = data.side
 
@@ -124,7 +148,7 @@ class PrintAxe(settings: Settings) : AxeItem(ToolMaterials.IRON, 5.0f, -3.0f, se
                     masterBlockEntity.setFace(
                         side,
                         PictureFrameBlockEntity.Face.Master(
-                            data.texture,
+                            url,
                             xyRange.right + 1,
                             xyRange.left + 1,
                             direction,
@@ -163,7 +187,7 @@ class PrintAxe(settings: Settings) : AxeItem(ToolMaterials.IRON, 5.0f, -3.0f, se
                     data.facing = player.horizontalFacing.opposite
 
                     val blockEntity = world.getBlockEntity(data.start) as WallpaperBlockEntity
-                    data.texture = blockEntity.getOrMakeFace(data.side).imageID ?: ""
+                    data.url = blockEntity.getOrMakeFace(data.side).url
 
                     player.setCurrentHand(hand)
                     return TypedActionResult.consume(itemStack)
@@ -173,11 +197,10 @@ class PrintAxe(settings: Settings) : AxeItem(ToolMaterials.IRON, 5.0f, -3.0f, se
         return TypedActionResult.pass(itemStack)
     }
 
-    fun openGUI(player: PlayerEntity, hand: Hand, data: ItemInstance){
+    private fun openGUI(player: PlayerEntity, hand: Hand, data: ItemInstance){
         data.clear()
-        player.setCurrentHand(hand)
         val buf = PacketByteBuf(Unpooled.buffer())
-        buf.writeString(data.texture)
+        buf.writeString(data.url?.toString() ?: "")
         ServerSidePacketRegistry.INSTANCE.sendToPlayer(player, ImagesMod.S2C_OPEN_SCREEN, buf)
     }
 
@@ -186,7 +209,7 @@ class PrintAxe(settings: Settings) : AxeItem(ToolMaterials.IRON, 5.0f, -3.0f, se
 
         ItemInstance(stack).use { data: ItemInstance ->
             val start = data.start
-            val texture = data.texture
+            val texture = data.url
             val facing = data.facing
 
             if (start == null) return
@@ -223,10 +246,10 @@ class PrintAxe(settings: Settings) : AxeItem(ToolMaterials.IRON, 5.0f, -3.0f, se
                         if (state.block is ImageBlock && state.get(sideProperty)) {
                             val blockEntity = world.getBlockEntity(scan) as WallpaperBlockEntity
                             val entity = blockEntity.getOrMakeFace(side)
-                            if (entity.imageID == null || entity.imageID == texture) {
+                            if (entity.url == null || entity.url == texture) {
                                 entity.xSize = xRange + 1
                                 entity.ySize = yRange + 1
-                                entity.imageID = texture
+                                entity.url = texture
 
                                 var u = 1
                                 var v = 1
@@ -321,7 +344,7 @@ class PrintAxe(settings: Settings) : AxeItem(ToolMaterials.IRON, 5.0f, -3.0f, se
         var lastEnd: BlockPos?
         var side: Direction
         var facing: Direction
-        var texture = ""
+        var url: URL?
 
         init {
             val tag = stack.orCreateTag
@@ -329,7 +352,11 @@ class PrintAxe(settings: Settings) : AxeItem(ToolMaterials.IRON, 5.0f, -3.0f, se
             lastEnd = getBP("lastEnd", tag)
             side = Direction.byId(tag.getInt("side"))
             facing = Direction.byId(tag.getInt("facing"))
-            texture = tag.getString("texture")
+            url = try {
+                URL(tag.getString("url"))
+            } catch (_: MalformedURLException) {
+                null
+            }
         }
 
         private fun getBP(name: String, tag: CompoundTag): BlockPos? {
@@ -348,7 +375,7 @@ class PrintAxe(settings: Settings) : AxeItem(ToolMaterials.IRON, 5.0f, -3.0f, se
             val tag = stack.orCreateTag
             if (start != null) tag.put("start", NbtHelper.fromBlockPos(start)) else tag.remove("start")
             if (lastEnd != null) tag.put("lastEnd", NbtHelper.fromBlockPos(lastEnd)) else tag.remove("lastEnd")
-            tag.putString("texture", texture)
+            tag.putString("url", url?.toString() ?: "")
             tag.putInt("side", side.id)
             tag.putInt("facing", facing.id)
             stack.tag = tag

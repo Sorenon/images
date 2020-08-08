@@ -6,8 +6,8 @@
     "ClientPlayerEntityMixin",
     "KeyboardMixin",
     "MinecraftClientMixin",
-    "WorldRendererMixin",
-    "RenderPhaseAccessor"
+    "RenderPhaseAccessor",
+    "WorldRendererMixin"
   ],
   "injectors": {
     "defaultRequire": 1

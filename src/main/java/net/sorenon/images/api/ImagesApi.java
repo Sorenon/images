@@ -1,8 +1,9 @@
 package net.sorenon.images.api;
 
-import net.minecraft.util.Identifier;
 import net.sorenon.images.init.ImagesModClient;
 import org.jetbrains.annotations.Nullable;
+
+import java.net.URL;
 
 public interface ImagesApi {
 
@@ -10,15 +11,19 @@ public interface ImagesApi {
         return ImagesModClient.Companion.getImageDB();
     }
 
-    /**
-     * Returns an image registered under the matching Identifier if it has been downloaded and decoded successfully
-     */
+
     @Nullable
-    DownloadedImage getDownloadedImage(String identifier);
+    DownloadedImage getDownloadedImage(URL url);
 
-    DownloadedImage getImageOrPlaceholder(String identifier);
+    ImageState getImageState(URL url);
 
-    ImageState getImageState(String identifier);
+    default DownloadedImage getImageOrPlaceholder(URL url) {
+        DownloadedImage image = getDownloadedImage(url);
+        if (image == null) {
+            image = getPlaceholderForState(getImageState(url));
+        }
+        return image;
+    }
 
     /**
      * Returns a square placeholder image to replace a DownloadedImage with the matching image state

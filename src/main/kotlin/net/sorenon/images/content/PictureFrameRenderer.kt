@@ -96,7 +96,7 @@ class PictureFrameRenderer(dispatcher: BlockEntityRenderDispatcher?) :
                 //Translate to the corner
                 matrices.translate(-rotatedWidth / 2.0, -rotatedHeight / 2.0, -0.5 + 1.1f / 16.0f)
 
-                val image = ImagesApi.getInstance().getImageOrPlaceholder(masterFace.texture)
+                val image = ImagesApi.getInstance().getImageOrPlaceholder(masterFace.url)
                 renderFace(
                     image,
                     masterFace.colour,

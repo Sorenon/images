@@ -4,9 +4,10 @@ import net.fabricmc.fabric.api.block.entity.BlockEntityClientSerializable
 import net.minecraft.block.BlockState
 import net.minecraft.block.entity.BlockEntity
 import net.minecraft.nbt.CompoundTag
-import net.minecraft.util.Identifier
 import net.minecraft.util.math.Direction
 import net.sorenon.images.init.ImagesMod
+import java.net.MalformedURLException
+import java.net.URL
 import kotlin.math.min
 
 class WallpaperBlockEntity : BlockEntity(ImagesMod.WALLPAPER_BLOCK_ENTITY), BlockEntityClientSerializable {
@@ -57,7 +58,7 @@ class WallpaperBlockEntity : BlockEntity(ImagesMod.WALLPAPER_BLOCK_ENTITY), Bloc
         var xSize = 1
         var ySize = 1
         var rotation = Direction.NORTH
-        var imageID: String? = null
+        var url: URL? = null
 
         fun toTag(isVertical: Boolean): CompoundTag {
             val tag = CompoundTag()
@@ -65,8 +66,8 @@ class WallpaperBlockEntity : BlockEntity(ImagesMod.WALLPAPER_BLOCK_ENTITY), Bloc
             tag.putInt("vStart", vStart)
             tag.putInt("xSize", xSize)
             tag.putInt("ySize", ySize)
-            if (imageID != null) {
-                tag.putString("imageID", imageID.toString())
+            if (url != null) {
+                tag.putString("url", url.toString())
             }
             if (isVertical) {
                 tag.putByte("rotation", rotation.id.toByte())
@@ -79,8 +80,12 @@ class WallpaperBlockEntity : BlockEntity(ImagesMod.WALLPAPER_BLOCK_ENTITY), Bloc
             vStart = tag.getInt("vStart")
             xSize = tag.getInt("xSize").coerceAtLeast(1)
             ySize = tag.getInt("ySize").coerceAtLeast(1)
-            if (tag.contains("imageID")) {
-                imageID = tag.getString("imageID")
+            if (tag.contains("url")) {
+                url = try {
+                    URL(tag.getString("url"))
+                } catch (_: MalformedURLException) {
+                    null
+                }
             }
             if (isVertical) {
                 rotation = byteToDir(tag.getByte("rotation"))

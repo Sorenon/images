@@ -6,10 +6,14 @@ import net.minecraft.client.texture.MissingSprite
 import net.minecraft.util.Identifier
 import net.sorenon.images.api.DownloadedImage
 import net.sorenon.images.api.ImagesApi
+import net.sorenon.images.init.ImagesMod
+import net.sorenon.images.init.ImagesModClient
 import org.apache.logging.log4j.LogManager
+import java.net.URI
+import java.net.URL
 
 
-class ClientImageDB : ImagesApi {
+class ImagesAPIImpl : ImagesApi {
     companion object {
         private val nullPlaceholder =
             PlaceholderImage(MissingSprite.getMissingSpriteId(), ImagesApi.ImageState.NULL)
@@ -17,19 +21,16 @@ class ClientImageDB : ImagesApi {
             PlaceholderImage(Identifier("images", "loading_image.png"), ImagesApi.ImageState.LOADING)
         private val errorPlaceholder =
             PlaceholderImage(Identifier("images", "bad_image.png"), ImagesApi.ImageState.BROKEN)
-
-        val LOGGER = LogManager.getLogger("Images")
     }
 
     private var imageCache = hashMapOf<String, ImageEnum>()
     private var ticks = 0
-    private var maxIdleTicks = 20 * 60 * 2
 
     /*
      * Public API start
      */
-    override fun getDownloadedImage(identifier: String): DownloadedImage? {
-        val image = getImageEnum(identifier)
+    override fun getDownloadedImage(url: URL): DownloadedImage? {
+        val image = getImageEnum(url)
         if (image is ImageEnum.Loaded) {
             return image.downloadedImage
         }
@@ -37,13 +38,8 @@ class ClientImageDB : ImagesApi {
         return null
     }
 
-    override fun getImageOrPlaceholder(identifier: String): DownloadedImage {
-        if (identifier.isEmpty()) return nullPlaceholder
-        return getDownloadedImage(identifier) ?: getPlaceholderForState(getImageState(identifier))
-    }
-
-    override fun getImageState(identifier: String): ImagesApi.ImageState {
-        return when (getImageEnum(identifier)) {
+    override fun getImageState(url: URL): ImagesApi.ImageState {
+        return when (getImageEnum(url)) {
             is ImageEnum.Loaded -> ImagesApi.ImageState.LOADED
             is ImageEnum.Loading -> ImagesApi.ImageState.LOADING
             is ImageEnum.Error -> ImagesApi.ImageState.BROKEN
@@ -64,21 +60,17 @@ class ClientImageDB : ImagesApi {
      * Public API end
      */
 
-    private fun getImageEnum(identifier: String): ImageEnum? {
-        return getOrCreateCachedImage(identifier)
+    private fun getImageEnum(url: URL): ImageEnum? {
+        return getOrCreateCachedImage(url)
     }
 
-    private fun getOrCreateCachedImage(identifier: String): ImageEnum? {
-        var image = imageCache[identifier]
+    private fun getOrCreateCachedImage(url: URL): ImageEnum? {
+        var image = imageCache[url.toString()]
         if (image == null) {
-            if (imageCache.size < 100) {
-                image = ImageEnum.Loading(DownloadingImage(imageCache, identifier))
-                imageCache[identifier] = image
-            } else {
-                ticks += maxIdleTicks - 20 // Hacky way of cleaning the cache
-            }
+            image = ImageEnum.Loading(DownloadingImage(imageCache, url))
+            imageCache[url.toString()] = image
         }
-        image?.lastUsed = ticks
+        image.lastUsed = ticks
         return image
     }
 
@@ -87,7 +79,7 @@ class ClientImageDB : ImagesApi {
 
         ticks++
 
-        val idleTicks = 20 * 60 * 1.5
+        val idleTicks = ImagesModClient.CFG_IDLE_TICKS
         imageCache.values.removeIf { netImage ->
             if (netImage != ImageEnum.Error && ticks - netImage.lastUsed > idleTicks) {
                 netImage.close()
@@ -122,7 +114,7 @@ class ClientImageDB : ImagesApi {
                 }
                 is Loaded -> {
                     MinecraftClient.getInstance().textureManager.destroyTexture(downloadedImage.textureID)
-                    LOGGER.debug("Destroying texture ${downloadedImage.textureID}")
+                    ImagesMod.LOGGER.debug("Destroying texture ${downloadedImage.textureID}")
                 }
                 is Error -> {
 
