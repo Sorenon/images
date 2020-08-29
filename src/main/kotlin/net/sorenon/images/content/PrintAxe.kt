@@ -1,19 +1,27 @@
 package net.sorenon.images.content
 
+import com.google.common.collect.ImmutableMultimap
+import com.google.common.collect.Multimap
 import io.netty.buffer.Unpooled
 import net.fabricmc.fabric.api.network.ServerSidePacketRegistry
 import net.fabricmc.fabric.api.server.PlayerStream
 import net.fabricmc.fabric.api.util.NbtType
+import net.minecraft.block.*
+import net.minecraft.block.entity.BannerPattern
 import net.minecraft.client.item.TooltipContext
+import net.minecraft.entity.EquipmentSlot
 import net.minecraft.entity.LivingEntity
+import net.minecraft.entity.attribute.EntityAttribute
+import net.minecraft.entity.attribute.EntityAttributeModifier
+import net.minecraft.entity.attribute.EntityAttributes
 import net.minecraft.entity.player.PlayerEntity
-import net.minecraft.item.AxeItem
-import net.minecraft.item.ItemStack
-import net.minecraft.item.ItemUsageContext
-import net.minecraft.item.ToolMaterials
+import net.minecraft.item.*
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.nbt.NbtHelper
 import net.minecraft.network.PacketByteBuf
+import net.minecraft.server.world.ServerWorld
+import net.minecraft.sound.SoundCategory
+import net.minecraft.sound.SoundEvents
 import net.minecraft.text.LiteralText
 import net.minecraft.text.Text
 import net.minecraft.text.TranslatableText
@@ -24,20 +32,20 @@ import net.minecraft.util.math.BlockPos
 import net.minecraft.util.math.Direction
 import net.minecraft.world.RayTraceContext
 import net.minecraft.world.World
+import net.sorenon.images.accessor.BannerMixinAccessor
 import net.sorenon.images.init.ImagesMod
 import net.sorenon.images.init.ImagesMod.Companion.S2C_PRINT_BOOM
-import net.sorenon.images.mixin.ItemAccessor
 import java.io.Closeable
 import java.net.MalformedURLException
 import java.net.URL
 import java.util.*
+import java.util.function.Consumer
 import kotlin.math.max
 import kotlin.math.min
 
-class PrintAxe(settings: Settings) : AxeItem(ToolMaterials.IRON, 5.0f, -3.0f, settings) {
+class PrintAxe(settings: Settings) : BannerPatternItem(BannerPattern.FLOWER, settings) {
     init {
-        @Suppress("CAST_NEVER_SUCCEEDS")
-        (this as ItemAccessor).setMaxDamage(1561)
+        this.maxDamage = 1561
     }
 
     override fun appendTooltip(
@@ -46,7 +54,7 @@ class PrintAxe(settings: Settings) : AxeItem(ToolMaterials.IRON, 5.0f, -3.0f, se
         tooltip: MutableList<Text>,
         context: TooltipContext
     ) {
-        tooltip.add(TranslatableText("images.printaxe.description").formatted(Formatting.BLUE))
+        tooltip.add(TranslatableText("images.printaxe.description").formatted(Formatting.GRAY))
         ItemInstance(stack).use {
             if (it.url != null) {
                 var str = it.url!!.toString()
@@ -64,6 +72,12 @@ class PrintAxe(settings: Settings) : AxeItem(ToolMaterials.IRON, 5.0f, -3.0f, se
 
         PlayerStream.watching(target).forEach {
             ServerSidePacketRegistry.INSTANCE.sendToPlayer(it, S2C_PRINT_BOOM, data)
+        }
+
+        stack.damage<LivingEntity>(2, attacker) { e: LivingEntity ->
+            e.sendEquipmentBreakStatus(
+                EquipmentSlot.MAINHAND
+            )
         }
         return super.postHit(stack, target, attacker)
     }
@@ -163,7 +177,22 @@ class PrintAxe(settings: Settings) : AxeItem(ToolMaterials.IRON, 5.0f, -3.0f, se
                 return ActionResult.SUCCESS
             }
         }
-        return ActionResult.PASS
+        else if (blockState.block is AbstractBannerBlock){
+            val blockEntity = world.getBlockEntity(placePos)
+            if (blockEntity is BannerMixinAccessor) {
+                ItemInstance(context.stack).use {
+                    if (blockEntity.url != it.url) {
+                        if (world is ServerWorld) {
+                            blockEntity.url = it.url
+                            blockEntity.markDirty()
+                            world.chunkManager.markForUpdate(placePos)
+                        }
+                        return ActionResult.success(world.isClient)
+                    }
+                }
+            }
+        }
+        return axe_useOnBlock(context)
     }
 
     override fun use(world: World, player: PlayerEntity, hand: Hand): TypedActionResult<ItemStack> {
@@ -380,5 +409,97 @@ class PrintAxe(settings: Settings) : AxeItem(ToolMaterials.IRON, 5.0f, -3.0f, se
             tag.putInt("facing", facing.id)
             stack.tag = tag
         }
+    }
+
+    //AXE STUFF
+    private val material = ToolMaterials.IRON
+    private val miningSpeed = material.miningSpeedMultiplier
+    private val attackDamage = 5.0f + material.attackDamage
+    private val attributeModifiers: Multimap<EntityAttribute, EntityAttributeModifier>
+
+    init {
+        val builder = ImmutableMultimap.builder<EntityAttribute, EntityAttributeModifier>()
+        builder.put(
+            EntityAttributes.GENERIC_ATTACK_DAMAGE, EntityAttributeModifier(
+                ATTACK_DAMAGE_MODIFIER_ID, "Tool modifier",
+                attackDamage.toDouble(), EntityAttributeModifier.Operation.ADDITION
+            )
+        )
+        builder.put(
+            EntityAttributes.GENERIC_ATTACK_SPEED,
+            EntityAttributeModifier(
+                ATTACK_SPEED_MODIFIER_ID,
+                "Tool modifier",
+                -3.0,
+                EntityAttributeModifier.Operation.ADDITION
+            )
+        )
+        attributeModifiers = builder.build()
+    }
+
+    override fun getMiningSpeedMultiplier(stack: ItemStack, state: BlockState): Float {
+        val material = state.material
+        return if (AxeItem.field_23139.contains(material) || AxeItem.EFFECTIVE_BLOCKS.contains(state.block)) miningSpeed else 1.0f
+    }
+
+    fun axe_useOnBlock(context: ItemUsageContext): ActionResult {
+        val world = context.world
+        val blockPos = context.blockPos
+        val blockState = world.getBlockState(blockPos)
+        val block = AxeItem.STRIPPED_BLOCKS[blockState.block]
+        return if (block != null) {
+            val playerEntity = context.player
+            world.playSound(playerEntity, blockPos, SoundEvents.ITEM_AXE_STRIP, SoundCategory.BLOCKS, 1.0f, 1.0f)
+            if (!world.isClient) {
+                world.setBlockState(
+                    blockPos,
+                    block.defaultState.with(PillarBlock.AXIS, blockState.get(PillarBlock.AXIS)) as BlockState,
+                    11
+                )
+                if (playerEntity != null) {
+                    context.stack.damage<LivingEntity>(1, playerEntity) { e: LivingEntity ->
+                        e.sendEquipmentBreakStatus(
+                            EquipmentSlot.MAINHAND
+                        )
+                    }
+                }
+            }
+            ActionResult.success(world.isClient)
+        } else {
+            ActionResult.PASS
+        }
+    }
+
+    override fun postMine(
+        stack: ItemStack,
+        world: World,
+        state: BlockState,
+        pos: BlockPos?,
+        miner: LivingEntity?
+    ): Boolean {
+        if (!world.isClient && state.getHardness(world, pos) != 0.0f) {
+            stack.damage<LivingEntity>(1, miner) { e: LivingEntity ->
+                e.sendEquipmentBreakStatus(
+                    EquipmentSlot.MAINHAND
+                )
+            }
+        }
+        return true
+    }
+
+    override fun getAttributeModifiers(slot: EquipmentSlot): Multimap<EntityAttribute, EntityAttributeModifier> {
+        return if (slot == EquipmentSlot.MAINHAND) attributeModifiers else super.getAttributeModifiers(slot)
+    }
+
+    fun getAttackDamage(): Float {
+        return attackDamage
+    }
+
+    override fun getEnchantability(): Int {
+        return material.enchantability
+    }
+
+    override fun canRepair(stack: ItemStack?, ingredient: ItemStack?): Boolean {
+        return material.repairIngredient.test(ingredient) || super.canRepair(stack, ingredient)
     }
 }

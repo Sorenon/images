@@ -43,7 +43,7 @@ class SelectImageScreen(private val currentID: String) : Screen(TranslatableText
             }
             else {
                 urlInput!!.setEditableColor(16733525)
-                doneButton?.active = false
+                doneButton?.active = it.isEmpty()
             }
         }
         urlInput!!.text = currentID
@@ -58,14 +58,13 @@ class SelectImageScreen(private val currentID: String) : Screen(TranslatableText
                 height / 2 + 40,
                 200,
                 20,
-                ScreenTexts.DONE,
-                PressAction {
-                    val buf = PacketByteBuf(Unpooled.buffer())
-                    buf.writeString(urlInput!!.text)
-                    ClientSidePacketRegistry.INSTANCE.sendToServer(ImagesMod.C2S_SET_TEXTURE, buf)
-                    onClose()
-                }
-            )
+                ScreenTexts.DONE
+            ) {
+                val buf = PacketByteBuf(Unpooled.buffer())
+                buf.writeString(urlInput!!.text)
+                ClientSidePacketRegistry.INSTANCE.sendToServer(ImagesMod.C2S_SET_TEXTURE, buf)
+                onClose()
+            }
         )
         addButton(
             ButtonWidget(
@@ -73,9 +72,8 @@ class SelectImageScreen(private val currentID: String) : Screen(TranslatableText
                 height / 2 + 40 + 24,
                 200,
                 20,
-                ScreenTexts.CANCEL,
-                PressAction { onClose() }
-            )
+                ScreenTexts.CANCEL
+            ) { onClose() }
         )
     }
 

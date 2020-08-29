@@ -6,6 +6,7 @@ import net.fabricmc.fabric.api.network.ServerSidePacketRegistry
 import net.fabricmc.fabric.api.particle.v1.FabricParticleTypes
 import net.minecraft.block.Block
 import net.minecraft.block.Material
+import net.minecraft.block.entity.BannerPattern
 import net.minecraft.block.entity.BlockEntityType
 import net.minecraft.item.BlockItem
 import net.minecraft.item.Item
@@ -18,6 +19,7 @@ import net.minecraft.util.registry.Registry
 import net.sorenon.images.content.*
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
+import org.omg.DynamicAny.DynEnum
 import java.net.URI
 import java.net.URL
 import java.util.function.Supplier
@@ -78,15 +80,15 @@ class ImagesMod : ModInitializer {
     }
 
     override fun onInitialize() {
-        registerBlock(WALLPAPER_BLOCK, "wallpaper")
+//        registerBlock(WALLPAPER_BLOCK, "wallpaper")
         registerBlock(PICTURE_FRAME_BLOCK, "picture_frame")
-        registerItem(WallpaperItem(WALLPAPER_BLOCK, Item.Settings().group(ItemGroup.MISC)), "wallpaper")
+//        registerItem(WallpaperItem(WALLPAPER_BLOCK, Item.Settings().group(ItemGroup.MISC)), "wallpaper")
         registerItem(BlockItem(PICTURE_FRAME_BLOCK, Item.Settings().group(ItemGroup.MISC)), "picture_frame")
         registerItem(PRINTAXE_ITEM, "printaxe")
-        Registry.register(
-            Registry.BLOCK_ENTITY_TYPE, "images:wallpaper",
-            WALLPAPER_BLOCK_ENTITY
-        )
+//        Registry.register(
+//            Registry.BLOCK_ENTITY_TYPE, "images:wallpaper",
+//            WALLPAPER_BLOCK_ENTITY
+//        )
         Registry.register(
             Registry.BLOCK_ENTITY_TYPE, "images:picture_frame",
             PICTURE_FRAME_BLOCK_ENTITY
@@ -95,6 +97,16 @@ class ImagesMod : ModInitializer {
         ServerSidePacketRegistry.INSTANCE.register(C2S_SET_TEXTURE) { context, buffer ->
             val urlStr = buffer.readString()
             context.taskQueue.execute {
+                if (urlStr.isEmpty()) {
+                    val player = context.player
+                    if (player.getStackInHand(Hand.MAIN_HAND).item is PrintAxe) {
+                        player.getStackInHand(Hand.MAIN_HAND).orCreateTag.remove("url")
+                    } else if (player.getStackInHand(Hand.OFF_HAND).item is PrintAxe) {
+                        player.getStackInHand(Hand.OFF_HAND).orCreateTag.remove("url")
+                    }
+                    return@execute
+                }
+
                 val url = sanitizeURL(urlStr)
                 if (url != null) {
                     val player = context.player

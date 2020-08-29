@@ -8,8 +8,6 @@ import net.sorenon.images.api.DownloadedImage
 import net.sorenon.images.api.ImagesApi
 import net.sorenon.images.init.ImagesMod
 import net.sorenon.images.init.ImagesModClient
-import org.apache.logging.log4j.LogManager
-import java.net.URI
 import java.net.URL
 
 
@@ -113,8 +111,8 @@ class ImagesAPIImpl : ImagesApi {
                     downloadingImage.close()
                 }
                 is Loaded -> {
-                    MinecraftClient.getInstance().textureManager.destroyTexture(downloadedImage.textureID)
-                    ImagesMod.LOGGER.debug("Destroying texture ${downloadedImage.textureID}")
+                    MinecraftClient.getInstance().textureManager.destroyTexture(downloadedImage.texture)
+                    ImagesMod.LOGGER.debug("Destroying texture ${downloadedImage.texture}")
                 }
                 is Error -> {
 

@@ -18,7 +18,7 @@ class PlaceholderImage(val identifier: Identifier, private val type: ImagesApi.I
         return type
     }
 
-    override fun getTextureID(): Identifier {
+    override fun getTexture(): Identifier {
         return identifier
     }
 }

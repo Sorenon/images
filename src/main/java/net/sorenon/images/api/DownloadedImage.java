@@ -1,13 +1,15 @@
 package net.sorenon.images.api;
 
+import net.minecraft.client.render.RenderLayer;
 import net.minecraft.util.Identifier;
 
 public interface DownloadedImage {
 
-    /**
-     * Returns the identifier to be used with RenderLayer.getText(**)
-     */
-    Identifier getTextureID();
+    Identifier getTexture();
+
+    default RenderLayer getRenderLayer() {
+        return RenderLayer.getText(getTexture());
+    }
 
     int getHeight();
 

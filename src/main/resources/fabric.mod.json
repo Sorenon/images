@@ -4,11 +4,12 @@
   "version": "${version}",
 
   "name": "Images",
-  "description": "Adds picture frames for displaying imgur images in game",
+  "description": "Adds methods for displaying images in game",
   "authors": [
     "Sorenon"
   ],
   "icon": "assets/images/pack.png",
+  "accessWidener" : "images.accesswidener",
   "environment": "*",
   "entrypoints": {
     "main": [

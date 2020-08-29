@@ -14,9 +14,12 @@ group = project.maven_group
 minecraft {
 }
 
-
 repositories {
     maven { url = "http://maven.fabricmc.net/" }
+}
+
+minecraft {
+    accessWidener "src/main/resources/images.accesswidener"
 }
 
 dependencies {

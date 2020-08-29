@@ -15,8 +15,7 @@ import net.minecraft.state.StateManager
 import net.minecraft.state.property.BooleanProperty
 import net.minecraft.state.property.Properties
 import net.minecraft.state.property.Properties.WATERLOGGED
-import net.minecraft.text.Text
-import net.minecraft.text.TranslatableText
+import net.minecraft.text.*
 import net.minecraft.util.ActionResult
 import net.minecraft.util.Formatting
 import net.minecraft.util.Hand
@@ -30,7 +29,7 @@ import net.minecraft.world.BlockView
 import net.minecraft.world.World
 import net.minecraft.world.WorldAccess
 import net.minecraft.world.WorldView
-import net.sorenon.images.mixin.DyeColorAccessor
+import net.sorenon.images.init.ImagesMod
 import java.util.*
 
 abstract class ImageBlock(settings: Settings?) : Block(settings), BlockEntityProvider {
@@ -188,6 +187,10 @@ abstract class ImageBlock(settings: Settings?) : Block(settings), BlockEntityPro
         override fun createBlockEntity(world: BlockView): BlockEntity {
             return WallpaperBlockEntity()
         }
+
+        override fun getRenderType(state: BlockState): BlockRenderType {
+            return BlockRenderType.INVISIBLE
+        }
     }
 
     class PictureFrameBlock(settings: Settings) : ImageBlock(settings), Waterloggable {
@@ -206,7 +209,7 @@ abstract class ImageBlock(settings: Settings?) : Block(settings), BlockEntityPro
             tooltip: MutableList<Text>,
             options: TooltipContext
         ) {
-            tooltip.add(TranslatableText("images.picture_frame.description").formatted(Formatting.BLUE))
+            tooltip.add(TranslatableText("images.picture_frame.description").formatted(Formatting.GRAY))
         }
 
         override fun getDroppedStacks(state: BlockState, builder: LootContext.Builder): List<ItemStack> {
@@ -229,19 +232,45 @@ abstract class ImageBlock(settings: Settings?) : Block(settings), BlockEntityPro
             hand: Hand,
             hit: BlockHitResult
         ): ActionResult {
-            if (!world.isClient) {
-                val stack = player.getStackInHand(hand)
-                if (stack.item is DyeItem) {
-                    val side = hit.side
-                    val blockEntity = (world.getBlockEntity(pos) as PictureFrameBlockEntity).getMaster(side)
-                    if (blockEntity != null) {
+            val stack = player.getStackInHand(hand)
+            if (stack.item is DyeItem) {
+                val side = hit.side
+                val blockEntity = (world.getBlockEntity(pos) as PictureFrameBlockEntity).getMaster(side)
+                if (blockEntity != null) {
+                    if (!world.isClient) {
                         val face = blockEntity.faces[side] as PictureFrameBlockEntity.Face.Master
-                        face.colour = ((stack.item as DyeItem).color as DyeColorAccessor).color
+                        face.colour = (stack.item as DyeItem).color.color
                         blockEntity.markDirty()
                         blockEntity.sync()
                         if (!player.isCreative) stack.decrement(1)
-                        return ActionResult.SUCCESS
                     }
+                    return ActionResult.success(world.isClient)
+                }
+            } else if (stack.item != ImagesMod.PRINTAXE_ITEM) {
+                val side = hit.side
+                val blockEntity = (world.getBlockEntity(pos) as PictureFrameBlockEntity).getMaster(side)
+                if (blockEntity != null) {
+                    if (world.isClient) {
+                        val face = blockEntity.faces[side] as PictureFrameBlockEntity.Face.Master
+                        val url = face.url.toString()
+
+                        val text: Text = Texts.bracketed(LiteralText(url))
+                            .styled { style: Style ->
+                                style.withClickEvent(
+                                    ClickEvent(
+                                        ClickEvent.Action.OPEN_URL,
+                                        url
+                                    )
+                                ).setHoverEvent(
+                                    HoverEvent(
+                                        HoverEvent.Action.SHOW_TEXT,
+                                        TranslatableText("images.open_or_copy_link")
+                                    )
+                                )
+                            }.formatted(Formatting.GREEN)
+                        player.sendMessage(text, false)
+                    }
+                    return ActionResult.success(world.isClient)
                 }
             }
 

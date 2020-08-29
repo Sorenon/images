@@ -11,7 +11,6 @@ import net.minecraft.client.util.math.Vector3f
 import net.minecraft.util.Identifier
 import net.minecraft.util.math.Direction
 import net.minecraft.util.math.Matrix4f
-import net.sorenon.images.api.ImagesApi
 import net.sorenon.images.api.DownloadedImage
 import net.sorenon.images.init.ImagesMod
 import kotlin.math.max
@@ -102,7 +101,7 @@ class WallpaperRenderer(dispatcher: BlockEntityRenderDispatcher?) : BlockEntityR
         matrix4f: Matrix4f,
         light: Int
     ) {
-        val vertexConsumer: VertexConsumer = vertexConsumers.getBuffer(RenderLayer.getText(netClientImage.textureID))
+        val vertexConsumer: VertexConsumer = vertexConsumers.getBuffer(netClientImage.renderLayer)
         val height = netClientImage.height.toDouble()
         val width = netClientImage.width.toDouble()
 
@@ -118,7 +117,7 @@ class WallpaperRenderer(dispatcher: BlockEntityRenderDispatcher?) : BlockEntityR
         val endX = min(face.uStart + 1.0, sizeX - borderX)
         if (startX >= endX) {
             if (netClientImage.isPlaceholder) {
-                renderSimpleQuad(vertexConsumers, netClientImage.textureID, matrix4f, light)
+                renderSimpleQuad(vertexConsumers, netClientImage.texture, matrix4f, light)
             }
             else {
                 renderSimpleQuad(vertexConsumers, voidTexture, matrix4f, light)
@@ -130,7 +129,7 @@ class WallpaperRenderer(dispatcher: BlockEntityRenderDispatcher?) : BlockEntityR
         val endY = min(face.vStart + 1.0, sizeY - borderY)
         if (startY >= endY) {
             if (netClientImage.isPlaceholder) {
-                renderSimpleQuad(vertexConsumers, netClientImage.textureID, matrix4f, light)
+                renderSimpleQuad(vertexConsumers, netClientImage.texture, matrix4f, light)
             }
             else {
                 renderSimpleQuad(vertexConsumers, voidTexture, matrix4f, light)

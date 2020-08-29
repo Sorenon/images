@@ -14,7 +14,7 @@ data class DownloadedImageImpl(var widthIn: Int, var heightIn: Int, var identifi
         return widthIn
     }
 
-    override fun getTextureID(): Identifier {
+    override fun getTexture(): Identifier {
         return identifier
     }
 

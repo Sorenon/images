@@ -9,7 +9,6 @@ import net.minecraft.util.math.Direction
 import net.minecraft.util.math.Matrix4f
 import net.sorenon.images.api.DownloadedImage
 import net.sorenon.images.api.ImagesApi
-import net.sorenon.images.mixin.RenderPhaseAccessor
 import java.util.*
 import kotlin.math.min
 
@@ -17,13 +16,15 @@ class PictureFrameRenderer(dispatcher: BlockEntityRenderDispatcher?) :
     BlockEntityRenderer<PictureFrameBlockEntity>(dispatcher) {
     companion object {
         var INSTANCE: PictureFrameRenderer? = null
-    }
 
-    @Suppress("INACCESSIBLE_TYPE")
-    private val backgroundRenderLayer = RenderLayer.of(
-        "images_colour", VertexFormats.POSITION_COLOR_LIGHT, 7, 256,
-        RenderLayer.MultiPhaseParameters.builder().lightmap(RenderPhaseAccessor.getENABLE_LIGHTMAP()).writeMaskState(RenderPhaseAccessor.getCOLOR_MASK()).build(false)
-    )
+        val backgroundRenderLayer: RenderLayer.MultiPhase = RenderLayer.of(
+            "images_background_color", VertexFormats.POSITION_COLOR_LIGHT, 7, 256,
+            RenderLayer.MultiPhaseParameters.builder()
+                .lightmap(RenderPhase.ENABLE_LIGHTMAP).writeMaskState(RenderPhase.COLOR_MASK).build(
+                false
+            )
+        )
+    }
 
     val alreadyDrawn = hashSetOf<UUID>()
 
@@ -120,8 +121,6 @@ class PictureFrameRenderer(dispatcher: BlockEntityRenderDispatcher?) :
         matrix4f: Matrix4f,
         vertexConsumers: VertexConsumerProvider
     ) {
-
-        @Suppress("INACCESSIBLE_TYPE")
         val vertexBuilderColour: VertexConsumer = vertexConsumers.getBuffer(backgroundRenderLayer)
 
         val r = (0xFF0000 and colour) shr 16
@@ -133,7 +132,7 @@ class PictureFrameRenderer(dispatcher: BlockEntityRenderDispatcher?) :
         vertexBuilderColour.vertex(matrix4f, sizeX, sizeY, 0.0f).color(r, g, b, 255).light(light).next()
         vertexBuilderColour.vertex(matrix4f, 0.0f, sizeY, 0.0f).color(r, g, b, 255).light(light).next()
 
-        val vertexBuilderTexture: VertexConsumer = vertexConsumers.getBuffer(RenderLayer.getText(image.textureID))
+        val vertexBuilderTexture: VertexConsumer = vertexConsumers.getBuffer(image.renderLayer)
 
         val height = image.height.toFloat()
         val width = image.width.toFloat()
@@ -156,22 +155,4 @@ class PictureFrameRenderer(dispatcher: BlockEntityRenderDispatcher?) :
         vertexBuilderTexture.vertex(matrix4f, borderX, endY, 0.0f).color(255, 255, 255, 255).texture(0.0f, 0.0f)
             .light(light).next()
     }
-
-    class RenderLayerImpl(
-        name: String?,
-        vertexFormat: VertexFormat?,
-        drawMode: Int,
-        expectedBufferSize: Int,
-        startAction: Runnable?,
-        endAction: Runnable?
-    ) : RenderLayer(
-        name,
-        vertexFormat,
-        drawMode,
-        expectedBufferSize,
-        false,
-        false,
-        startAction,
-        endAction
-    )
 }
