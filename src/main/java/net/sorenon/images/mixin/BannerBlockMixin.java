@@ -16,20 +16,16 @@ import net.minecraft.util.Formatting;
 import net.minecraft.util.Hand;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
 import net.sorenon.images.accessor.BannerMixinAccessor;
 import net.sorenon.images.init.ImagesMod;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
 
 import java.net.URL;
 import java.util.List;
 
 @Mixin(AbstractBannerBlock.class)
 abstract class BannerBlockMixin extends Block {
-    @Shadow public abstract ItemStack getPickStack(BlockView world, BlockPos pos, BlockState state);
-
     public BannerBlockMixin(Settings settings) {
         super(settings);
     }

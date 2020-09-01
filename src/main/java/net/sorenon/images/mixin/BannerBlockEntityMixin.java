@@ -42,19 +42,6 @@ abstract class BannerBlockEntityMixin implements BannerMixinAccessor {
         }
     }
 
-    @Inject(at = @At("HEAD"), method = "readFrom")
-    void inject_readFrom(ItemStack stack, DyeColor baseColor, CallbackInfo ci){
-        imageURL = getURLFromStack(stack);
-    }
-
-    @Inject(at = @At("RETURN"), method = "getPickStack")
-    void inject_getPickStack(BlockState state, CallbackInfoReturnable<ItemStack> cir){
-        ItemStack stack = cir.getReturnValue();
-        if (imageURL != null) {
-            stack.getOrCreateSubTag("BlockEntityTag").putString("sorenon_imageURL", imageURL.toString());
-        }
-    }
-
     @Inject(at = @At("RETURN"), method = "getPatternCount", cancellable = true)
     private static void inject_getPatternCount(ItemStack stack, CallbackInfoReturnable<Integer> cir){
         if (getURLFromStack(stack) != null) {

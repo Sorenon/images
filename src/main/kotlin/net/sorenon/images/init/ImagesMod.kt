@@ -95,7 +95,7 @@ class ImagesMod : ModInitializer {
         )
 
         ServerSidePacketRegistry.INSTANCE.register(C2S_SET_TEXTURE) { context, buffer ->
-            val urlStr = buffer.readString()
+            val urlStr = buffer.readString(128)
             context.taskQueue.execute {
                 if (urlStr.isEmpty()) {
                     val player = context.player

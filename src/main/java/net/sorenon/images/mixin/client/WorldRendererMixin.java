@@ -1,4 +1,4 @@
-package net.sorenon.images.mixin;
+package net.sorenon.images.mixin.client;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.*;

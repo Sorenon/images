@@ -1,4 +1,4 @@
-package net.sorenon.images.mixin;
+package net.sorenon.images.mixin.client;
 
 import net.fabricmc.fabric.api.util.NbtType;
 import net.minecraft.client.render.VertexConsumerProvider;

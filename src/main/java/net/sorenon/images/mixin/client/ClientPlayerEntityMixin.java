@@ -1,4 +1,4 @@
-package net.sorenon.images.mixin;
+package net.sorenon.images.mixin.client;
 
 import com.mojang.authlib.GameProfile;
 import net.minecraft.client.network.ClientPlayerEntity;

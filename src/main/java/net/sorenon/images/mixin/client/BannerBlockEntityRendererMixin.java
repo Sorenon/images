@@ -1,4 +1,4 @@
-package net.sorenon.images.mixin;
+package net.sorenon.images.mixin.client;
 
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.block.entity.BannerBlockEntity;
