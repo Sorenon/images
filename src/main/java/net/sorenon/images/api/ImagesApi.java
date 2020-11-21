@@ -37,6 +37,7 @@ public interface ImagesApi {
         LOADED,
         LOADING,
         BROKEN,
+        TOO_BIG,
         NULL
     }
 }

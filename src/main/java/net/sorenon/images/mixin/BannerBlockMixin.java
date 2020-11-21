@@ -63,7 +63,7 @@ abstract class BannerBlockMixin extends Block {
                                         ClickEvent.Action.OPEN_URL,
                                         urlStr
                                 )
-                        ).setHoverEvent(
+                        ).withHoverEvent(
                                 new HoverEvent(
                                         HoverEvent.Action.SHOW_TEXT,
                                         new TranslatableText("images.open_or_copy_link")

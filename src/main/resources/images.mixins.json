@@ -3,20 +3,22 @@
   "package": "net.sorenon.images.mixin",
   "compatibilityLevel": "JAVA_8",
   "client": [
+    "client.BannerBlockEntityMixin",
     "client.BannerBlockEntityRendererMixin",
+    "client.BannerItemMixin",
     "client.BuiltinModelItemRendererMixin",
     "client.ClientPlayerEntityMixin",
     "client.KeyboardMixin",
     "client.MinecraftClientMixin",
-    "client.WorldRendererMixin",
-    "client.BannerBlockEntityMixin",
-    "client.BannerItemMixin"
+    "client.PlayerEntityRendererMixin",
+    "client.WorldRendererMixin"
   ],
   "injectors": {
     "defaultRequire": 1
   },
   "mixins": [
     "BannerBlockEntityMixin",
-    "BannerBlockMixin"
+    "BannerBlockMixin",
+    "BannerItemMixin"
   ]
 }

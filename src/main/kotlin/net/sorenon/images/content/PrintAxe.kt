@@ -1,27 +1,22 @@
 package net.sorenon.images.content
 
-import com.google.common.collect.ImmutableMultimap
-import com.google.common.collect.Multimap
 import io.netty.buffer.Unpooled
 import net.fabricmc.fabric.api.network.ServerSidePacketRegistry
 import net.fabricmc.fabric.api.server.PlayerStream
 import net.fabricmc.fabric.api.util.NbtType
-import net.minecraft.block.*
-import net.minecraft.block.entity.BannerPattern
+import net.minecraft.block.AbstractBannerBlock
 import net.minecraft.client.item.TooltipContext
 import net.minecraft.entity.EquipmentSlot
 import net.minecraft.entity.LivingEntity
-import net.minecraft.entity.attribute.EntityAttribute
-import net.minecraft.entity.attribute.EntityAttributeModifier
-import net.minecraft.entity.attribute.EntityAttributes
 import net.minecraft.entity.player.PlayerEntity
-import net.minecraft.item.*
+import net.minecraft.item.AxeItem
+import net.minecraft.item.ItemStack
+import net.minecraft.item.ItemUsageContext
+import net.minecraft.item.ToolMaterials
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.nbt.NbtHelper
 import net.minecraft.network.PacketByteBuf
 import net.minecraft.server.world.ServerWorld
-import net.minecraft.sound.SoundCategory
-import net.minecraft.sound.SoundEvents
 import net.minecraft.text.LiteralText
 import net.minecraft.text.Text
 import net.minecraft.text.TranslatableText
@@ -30,7 +25,7 @@ import net.minecraft.util.hit.BlockHitResult
 import net.minecraft.util.hit.HitResult
 import net.minecraft.util.math.BlockPos
 import net.minecraft.util.math.Direction
-import net.minecraft.world.RayTraceContext
+import net.minecraft.world.RaycastContext
 import net.minecraft.world.World
 import net.sorenon.images.accessor.BannerMixinAccessor
 import net.sorenon.images.init.ImagesMod
@@ -39,11 +34,10 @@ import java.io.Closeable
 import java.net.MalformedURLException
 import java.net.URL
 import java.util.*
-import java.util.function.Consumer
 import kotlin.math.max
 import kotlin.math.min
 
-class PrintAxe(settings: Settings) : BannerPatternItem(BannerPattern.FLOWER, settings) {
+class PrintAxe(settings: Settings) : AxeItem(ToolMaterials.IRON, 5.0f, -3.0f, settings) {
     init {
         this.maxDamage = 1561
     }
@@ -103,7 +97,7 @@ class PrintAxe(settings: Settings) : BannerPatternItem(BannerPattern.FLOWER, set
                     if (player != null) openGUI(player, context.hand, data)
                     data.start = context.blockPos
                     data.side = context.side
-                    return ActionResult.SUCCESS
+                    return ActionResult.success(world.isClient)
                 }
 
                 val start = data.start
@@ -116,7 +110,7 @@ class PrintAxe(settings: Settings) : BannerPatternItem(BannerPattern.FLOWER, set
 
                     if (side.axis.choose(start.x, start.y, start.z) !=
                         side.axis.choose(placePos.x, placePos.y, placePos.z)
-                    ) return ActionResult.SUCCESS
+                    ) return ActionResult.FAIL //Check if start and end are on the same plane
 
                     val max =
                         BlockPos(max(placePos.x, start.x), max(placePos.y, start.y), max(placePos.z, start.z))
@@ -130,7 +124,7 @@ class PrintAxe(settings: Settings) : BannerPatternItem(BannerPattern.FLOWER, set
                                 scan.set(x, y, z)
                                 val state = world.getBlockState(scan)
                                 if (state.block != ImagesMod.PICTURE_FRAME_BLOCK || !state.get(prop)) {
-                                    return ActionResult.PASS
+                                    return ActionResult.FAIL
                                 }
                             }
                         }
@@ -192,7 +186,7 @@ class PrintAxe(settings: Settings) : BannerPatternItem(BannerPattern.FLOWER, set
                 }
             }
         }
-        return axe_useOnBlock(context)
+        return super.useOnBlock(context)
     }
 
     override fun use(world: World, player: PlayerEntity, hand: Hand): TypedActionResult<ItemStack> {
@@ -235,7 +229,7 @@ class PrintAxe(settings: Settings) : BannerPatternItem(BannerPattern.FLOWER, set
 
     override fun usageTick(world: World, user: LivingEntity, stack: ItemStack, remainingUseTicks: Int) {
         if (world.isClient || user !is PlayerEntity) return
-
+        //:(
         ItemInstance(stack).use { data: ItemInstance ->
             val start = data.start
             val texture = data.url
@@ -361,7 +355,7 @@ class PrintAxe(settings: Settings) : BannerPatternItem(BannerPattern.FLOWER, set
     }
 
     private fun getSelectedWallpaper(user: PlayerEntity): BlockHitResult? {
-        val trace = rayTrace(user.world, user, RayTraceContext.FluidHandling.NONE)
+        val trace = raycast(user.world, user, RaycastContext.FluidHandling.NONE)
         if (trace.type == HitResult.Type.BLOCK && user.world.getBlockState(trace.blockPos).block == ImagesMod.WALLPAPER_BLOCK) {
             return trace
         }
@@ -411,95 +405,95 @@ class PrintAxe(settings: Settings) : BannerPatternItem(BannerPattern.FLOWER, set
         }
     }
 
-    //AXE STUFF
-    private val material = ToolMaterials.IRON
-    private val miningSpeed = material.miningSpeedMultiplier
-    private val attackDamage = 5.0f + material.attackDamage
-    private val attributeModifiers: Multimap<EntityAttribute, EntityAttributeModifier>
-
-    init {
-        val builder = ImmutableMultimap.builder<EntityAttribute, EntityAttributeModifier>()
-        builder.put(
-            EntityAttributes.GENERIC_ATTACK_DAMAGE, EntityAttributeModifier(
-                ATTACK_DAMAGE_MODIFIER_ID, "Tool modifier",
-                attackDamage.toDouble(), EntityAttributeModifier.Operation.ADDITION
-            )
-        )
-        builder.put(
-            EntityAttributes.GENERIC_ATTACK_SPEED,
-            EntityAttributeModifier(
-                ATTACK_SPEED_MODIFIER_ID,
-                "Tool modifier",
-                -3.0,
-                EntityAttributeModifier.Operation.ADDITION
-            )
-        )
-        attributeModifiers = builder.build()
-    }
-
-    override fun getMiningSpeedMultiplier(stack: ItemStack, state: BlockState): Float {
-        val material = state.material
-        return if (AxeItem.field_23139.contains(material) || AxeItem.EFFECTIVE_BLOCKS.contains(state.block)) miningSpeed else 1.0f
-    }
-
-    fun axe_useOnBlock(context: ItemUsageContext): ActionResult {
-        val world = context.world
-        val blockPos = context.blockPos
-        val blockState = world.getBlockState(blockPos)
-        val block = AxeItem.STRIPPED_BLOCKS[blockState.block]
-        return if (block != null) {
-            val playerEntity = context.player
-            world.playSound(playerEntity, blockPos, SoundEvents.ITEM_AXE_STRIP, SoundCategory.BLOCKS, 1.0f, 1.0f)
-            if (!world.isClient) {
-                world.setBlockState(
-                    blockPos,
-                    block.defaultState.with(PillarBlock.AXIS, blockState.get(PillarBlock.AXIS)) as BlockState,
-                    11
-                )
-                if (playerEntity != null) {
-                    context.stack.damage<LivingEntity>(1, playerEntity) { e: LivingEntity ->
-                        e.sendEquipmentBreakStatus(
-                            EquipmentSlot.MAINHAND
-                        )
-                    }
-                }
-            }
-            ActionResult.success(world.isClient)
-        } else {
-            ActionResult.PASS
-        }
-    }
-
-    override fun postMine(
-        stack: ItemStack,
-        world: World,
-        state: BlockState,
-        pos: BlockPos?,
-        miner: LivingEntity?
-    ): Boolean {
-        if (!world.isClient && state.getHardness(world, pos) != 0.0f) {
-            stack.damage<LivingEntity>(1, miner) { e: LivingEntity ->
-                e.sendEquipmentBreakStatus(
-                    EquipmentSlot.MAINHAND
-                )
-            }
-        }
-        return true
-    }
-
-    override fun getAttributeModifiers(slot: EquipmentSlot): Multimap<EntityAttribute, EntityAttributeModifier> {
-        return if (slot == EquipmentSlot.MAINHAND) attributeModifiers else super.getAttributeModifiers(slot)
-    }
-
-    fun getAttackDamage(): Float {
-        return attackDamage
-    }
-
-    override fun getEnchantability(): Int {
-        return material.enchantability
-    }
-
-    override fun canRepair(stack: ItemStack?, ingredient: ItemStack?): Boolean {
-        return material.repairIngredient.test(ingredient) || super.canRepair(stack, ingredient)
-    }
+//    //AXE STUFF
+//    private val material = ToolMaterials.IRON
+//    private val miningSpeed = material.miningSpeedMultiplier
+//    private val attackDamage = 5.0f + material.attackDamage
+//    private val attributeModifiers: Multimap<EntityAttribute, EntityAttributeModifier>
+//
+//    init {
+//        val builder = ImmutableMultimap.builder<EntityAttribute, EntityAttributeModifier>()
+//        builder.put(
+//            EntityAttributes.GENERIC_ATTACK_DAMAGE, EntityAttributeModifier(
+//                ATTACK_DAMAGE_MODIFIER_ID, "Tool modifier",
+//                attackDamage.toDouble(), EntityAttributeModifier.Operation.ADDITION
+//            )
+//        )
+//        builder.put(
+//            EntityAttributes.GENERIC_ATTACK_SPEED,
+//            EntityAttributeModifier(
+//                ATTACK_SPEED_MODIFIER_ID,
+//                "Tool modifier",
+//                -3.0,
+//                EntityAttributeModifier.Operation.ADDITION
+//            )
+//        )
+//        attributeModifiers = builder.build()
+//    }
+//
+//    override fun getMiningSpeedMultiplier(stack: ItemStack, state: BlockState): Float {
+//        val material = state.material
+//        return if (AxeItem.field_23139.contains(material) || AxeItem.EFFECTIVE_BLOCKS.contains(state.block)) miningSpeed else 1.0f
+//    }
+//
+//    fun axe_useOnBlock(context: ItemUsageContext): ActionResult {
+//        val world = context.world
+//        val blockPos = context.blockPos
+//        val blockState = world.getBlockState(blockPos)
+//        val block = AxeItem.STRIPPED_BLOCKS[blockState.block]
+//        return if (block != null) {
+//            val playerEntity = context.player
+//            world.playSound(playerEntity, blockPos, SoundEvents.ITEM_AXE_STRIP, SoundCategory.BLOCKS, 1.0f, 1.0f)
+//            if (!world.isClient) {
+//                world.setBlockState(
+//                    blockPos,
+//                    block.defaultState.with(PillarBlock.AXIS, blockState.get(PillarBlock.AXIS)) as BlockState,
+//                    11
+//                )
+//                if (playerEntity != null) {
+//                    context.stack.damage<LivingEntity>(1, playerEntity) { e: LivingEntity ->
+//                        e.sendEquipmentBreakStatus(
+//                            EquipmentSlot.MAINHAND
+//                        )
+//                    }
+//                }
+//            }
+//            ActionResult.success(world.isClient)
+//        } else {
+//            ActionResult.PASS
+//        }
+//    }
+//
+//    override fun postMine(
+//        stack: ItemStack,
+//        world: World,
+//        state: BlockState,
+//        pos: BlockPos?,
+//        miner: LivingEntity?
+//    ): Boolean {
+//        if (!world.isClient && state.getHardness(world, pos) != 0.0f) {
+//            stack.damage<LivingEntity>(1, miner) { e: LivingEntity ->
+//                e.sendEquipmentBreakStatus(
+//                    EquipmentSlot.MAINHAND
+//                )
+//            }
+//        }
+//        return true
+//    }
+//
+//    override fun getAttributeModifiers(slot: EquipmentSlot): Multimap<EntityAttribute, EntityAttributeModifier> {
+//        return if (slot == EquipmentSlot.MAINHAND) attributeModifiers else super.getAttributeModifiers(slot)
+//    }
+//
+//    fun getAttackDamage(): Float {
+//        return attackDamage
+//    }
+//
+//    override fun getEnchantability(): Int {
+//        return material.enchantability
+//    }
+//
+//    override fun canRepair(stack: ItemStack?, ingredient: ItemStack?): Boolean {
+//        return material.repairIngredient.test(ingredient) || super.canRepair(stack, ingredient)
+//    }
 }

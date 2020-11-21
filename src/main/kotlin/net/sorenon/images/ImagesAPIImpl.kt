@@ -19,6 +19,8 @@ class ImagesAPIImpl : ImagesApi {
             PlaceholderImage(Identifier("images", "loading_image.png"), ImagesApi.ImageState.LOADING)
         private val errorPlaceholder =
             PlaceholderImage(Identifier("images", "bad_image.png"), ImagesApi.ImageState.BROKEN)
+        private val tooBigPlaceholder =
+            PlaceholderImage(Identifier("images", "image_too_big.png"), ImagesApi.ImageState.BROKEN)
     }
 
     private var imageCache = hashMapOf<String, ImageEnum>()
@@ -41,6 +43,7 @@ class ImagesAPIImpl : ImagesApi {
             is ImageEnum.Loaded -> ImagesApi.ImageState.LOADED
             is ImageEnum.Loading -> ImagesApi.ImageState.LOADING
             is ImageEnum.Error -> ImagesApi.ImageState.BROKEN
+            is ImageEnum.TooBig -> ImagesApi.ImageState.TOO_BIG
             null -> ImagesApi.ImageState.NULL
         }
     }
@@ -50,6 +53,7 @@ class ImagesAPIImpl : ImagesApi {
             ImagesApi.ImageState.LOADED -> loadingPlaceholder
             ImagesApi.ImageState.LOADING -> loadingPlaceholder
             ImagesApi.ImageState.BROKEN -> errorPlaceholder
+            ImagesApi.ImageState.TOO_BIG -> tooBigPlaceholder
             ImagesApi.ImageState.NULL -> nullPlaceholder
         }
     }
@@ -100,6 +104,7 @@ class ImagesAPIImpl : ImagesApi {
         data class Loading(var downloadingImage: DownloadingImage) : ImageEnum()
         data class Loaded(var downloadedImage: DownloadedImageImpl) : ImageEnum()
         object Error : ImageEnum()
+        object TooBig : ImageEnum()
 
         var lastUsed: Int = 0
 
@@ -114,7 +119,7 @@ class ImagesAPIImpl : ImagesApi {
                     MinecraftClient.getInstance().textureManager.destroyTexture(downloadedImage.texture)
                     ImagesMod.LOGGER.debug("Destroying texture ${downloadedImage.texture}")
                 }
-                is Error -> {
+                else -> {
 
                 }
             }

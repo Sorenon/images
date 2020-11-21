@@ -47,10 +47,9 @@ class SelectImageScreen(private val currentID: String) : Screen(TranslatableText
             }
         }
         urlInput!!.text = currentID
-        urlInput!!.setSelected(true)
-        focused = urlInput
-
-        children.add(urlInput)
+        urlInput!!.active = true
+        this.children.add(urlInput)
+        this.setInitialFocus(urlInput)
 
         doneButton = addButton(
             ButtonWidget(
@@ -81,12 +80,7 @@ class SelectImageScreen(private val currentID: String) : Screen(TranslatableText
         if (keyCode == 256) {
             client!!.player!!.closeHandledScreen()
         }
-        return if (!this.urlInput!!.keyPressed(
-                keyCode,
-                scanCode,
-                modifiers
-            ) && !this.urlInput!!.isActive
-        ) super.keyPressed(keyCode, scanCode, modifiers) else true
+        return super.keyPressed(keyCode, scanCode, modifiers)
     }
 
     override fun tick() {

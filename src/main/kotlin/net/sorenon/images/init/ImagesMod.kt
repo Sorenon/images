@@ -2,24 +2,28 @@ package net.sorenon.images.init
 
 import net.fabricmc.api.ModInitializer
 import net.fabricmc.fabric.api.`object`.builder.v1.block.FabricBlockSettings
+import net.fabricmc.fabric.api.client.itemgroup.FabricItemGroupBuilder
 import net.fabricmc.fabric.api.network.ServerSidePacketRegistry
 import net.fabricmc.fabric.api.particle.v1.FabricParticleTypes
+import net.fabricmc.loader.api.FabricLoader
 import net.minecraft.block.Block
 import net.minecraft.block.Material
-import net.minecraft.block.entity.BannerPattern
 import net.minecraft.block.entity.BlockEntityType
 import net.minecraft.item.BlockItem
 import net.minecraft.item.Item
 import net.minecraft.item.ItemGroup
+import net.minecraft.item.ItemStack
 import net.minecraft.sound.BlockSoundGroup
 import net.minecraft.sound.SoundEvents
 import net.minecraft.util.Hand
 import net.minecraft.util.Identifier
 import net.minecraft.util.registry.Registry
-import net.sorenon.images.content.*
+import net.sorenon.images.content.ImageBlock
+import net.sorenon.images.content.PictureFrameBlockEntity
+import net.sorenon.images.content.PrintAxe
+import net.sorenon.images.content.WallpaperBlockEntity
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
-import org.omg.DynamicAny.DynEnum
 import java.net.URI
 import java.net.URL
 import java.util.function.Supplier
@@ -31,6 +35,10 @@ class ImagesMod : ModInitializer {
         val C2S_SET_TEXTURE = Identifier("images", "set")
         val S2C_OPEN_SCREEN = Identifier("images", "open_screen")
         val S2C_PRINT_BOOM = Identifier("images", "particles")
+
+        val ITEM_GROUP: ItemGroup = FabricItemGroupBuilder.build(Identifier("images", "item_group")) { ItemStack(PRINTAXE_ITEM) }
+
+        val PRINTAXE_ITEM = PrintAxe(Item.Settings().group(ITEM_GROUP))
 
         val WALLPAPER_BLOCK = ImageBlock.WallPaperBlock(
             FabricBlockSettings.of(Material.SUPPORTED).strength(0.1f).noCollision()
@@ -61,8 +69,6 @@ class ImagesMod : ModInitializer {
             PICTURE_FRAME_BLOCK
         ).build(null)
 
-        val PRINTAXE_ITEM = PrintAxe(Item.Settings().group(ItemGroup.TOOLS))
-
         val PRINTAXE_PARTICLES = FabricParticleTypes.simple()
 
         fun sanitizeURL(string: String): URL? {
@@ -77,18 +83,16 @@ class ImagesMod : ModInitializer {
                 null
             }
         }
+
+        fun isTrinketsInstalled(): Boolean {
+            return FabricLoader.getInstance().isModLoaded("trinkets")
+        }
     }
 
     override fun onInitialize() {
-//        registerBlock(WALLPAPER_BLOCK, "wallpaper")
         registerBlock(PICTURE_FRAME_BLOCK, "picture_frame")
-//        registerItem(WallpaperItem(WALLPAPER_BLOCK, Item.Settings().group(ItemGroup.MISC)), "wallpaper")
-        registerItem(BlockItem(PICTURE_FRAME_BLOCK, Item.Settings().group(ItemGroup.MISC)), "picture_frame")
+        registerItem(BlockItem(PICTURE_FRAME_BLOCK, Item.Settings().group(ITEM_GROUP)), "picture_frame")
         registerItem(PRINTAXE_ITEM, "printaxe")
-//        Registry.register(
-//            Registry.BLOCK_ENTITY_TYPE, "images:wallpaper",
-//            WALLPAPER_BLOCK_ENTITY
-//        )
         Registry.register(
             Registry.BLOCK_ENTITY_TYPE, "images:picture_frame",
             PICTURE_FRAME_BLOCK_ENTITY

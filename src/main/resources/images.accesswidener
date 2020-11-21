@@ -18,3 +18,8 @@ accessible field net/minecraft/client/render/RenderPhase ENABLE_DIFFUSE_LIGHTING
 extendable class net/minecraft/client/render/RenderLayer$MultiPhase
 accessible method net/minecraft/client/render/RenderLayer$MultiPhase <init> (Ljava/lang/String;Lnet/minecraft/client/render/VertexFormat;IIZZLnet/minecraft/client/render/RenderLayer$MultiPhaseParameters;)V
 accessible field net/minecraft/client/render/RenderPhase TRANSLUCENT_TRANSPARENCY Lnet/minecraft/client/render/RenderPhase$Transparency;
+accessible field net/minecraft/client/render/entity/model/PlayerEntityModel cape Lnet/minecraft/client/model/ModelPart;
+accessible field net/minecraft/client/render/RenderPhase NO_TRANSPARENCY Lnet/minecraft/client/render/RenderPhase$Transparency;
+accessible field net/minecraft/client/render/RenderPhase ENABLE_OVERLAY_COLOR Lnet/minecraft/client/render/RenderPhase$Overlay;
+accessible field net/minecraft/client/render/RenderPhase ONE_TENTH_ALPHA Lnet/minecraft/client/render/RenderPhase$Alpha;
+accessible field net/minecraft/client/render/RenderPhase DISABLE_CULLING Lnet/minecraft/client/render/RenderPhase$Cull;

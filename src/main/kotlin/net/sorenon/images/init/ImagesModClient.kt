@@ -59,8 +59,8 @@ class ImagesModClient : ClientModInitializer {
             try {
                 FileOutputStream(configFile).use { stream -> properties.store(stream,
                     "Images properties file" +
-                        "\nmaxImageSize: The maximum allowed file size for an image (Default 2MB)" +
-                        "\nimageIdleTicks: The amount time of not being used until an image is deleted (Default 2min)") }
+                        "\nmaxImageSize: The maximum allowed file size for an image in bytes (Default 2MB)" +
+                        "\nimageIdleTicks: The amount time of not being used until an image is deleted in ticks (Default 2min)") }
             } catch (e: IOException) {
                 ImagesMod.LOGGER.warn("[Images] Could not store property file '" + configFile.absolutePath + "'", e)
             }

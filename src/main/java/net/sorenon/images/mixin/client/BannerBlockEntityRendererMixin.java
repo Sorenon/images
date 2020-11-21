@@ -33,7 +33,7 @@ abstract class BannerBlockEntityRendererMixin {
     private static final RenderLayer DEPTH_ONLY = new RenderLayer.MultiPhase("images_depth_only", VertexFormats.POSITION, 7, 256, false, false, RenderLayer.MultiPhaseParameters.builder().writeMaskState(RenderPhase.DEPTH_MASK).build(false));
 
     @Unique
-    private static RenderLayer getUniqueSpriteRenderLayer(Identifier texture) {
+    private static RenderLayer getUniqueRenderLayer(Identifier texture) {
         return new RenderLayer.MultiPhase("images_background_texture",
                 VertexFormats.POSITION_COLOR_TEXTURE_OVERLAY_LIGHT_NORMAL,
                 7,
@@ -57,25 +57,26 @@ abstract class BannerBlockEntityRendererMixin {
                 This is all rather hacky atm but it's the only reliable way I can think of to render all the layers without causing artifacts or performance issues
              */
 
-            RenderLayer renderLayer = getUniqueSpriteRenderLayer(baseSprite.getAtlasId());
-            canvas.render(matrices, baseSprite.getSprite().getTextureSpecificVertexConsumer(ItemRenderer.method_29711(vertexConsumers, renderLayer, true, bl)), light, overlay);
-            ((VertexConsumerProvider.Immediate) vertexConsumers).draw(renderLayer); //Not necessary but making it explicit makes the rendering code easier to understand
+            RenderLayer renderLayer = getUniqueRenderLayer(baseSprite.getAtlasId());
+            canvas.render(matrices, baseSprite.getSprite().getTextureSpecificVertexConsumer(ItemRenderer.getDirectItemGlintConsumer(vertexConsumers, renderLayer, true, bl)), light, overlay);
+//            ((VertexConsumerProvider.Immediate) vertexConsumers).draw(renderLayer); //Not necessary but making it explicit makes the rendering code easier to understand
 
             for (int i = 0; i < 17 && i < patterns.size(); ++i) {
                 Pair<BannerPattern, DyeColor> pair = patterns.get(i);
                 float[] fs = pair.getSecond().getColorComponents();
                 SpriteIdentifier spriteIdentifier = new SpriteIdentifier(isBanner ? TexturedRenderLayers.BANNER_PATTERNS_ATLAS_TEXTURE : TexturedRenderLayers.SHIELD_PATTERNS_ATLAS_TEXTURE, pair.getFirst().getSpriteId(isBanner));
-                canvas.render(matrices, spriteIdentifier.getVertexConsumer(vertexConsumers, BannerBlockEntityRendererMixin::getUniqueSpriteRenderLayer), light, overlay, fs[0], fs[1], fs[2], 1.0F);
-            }   
+                canvas.render(matrices, spriteIdentifier.getVertexConsumer(vertexConsumers, BannerBlockEntityRendererMixin::getUniqueRenderLayer), light, overlay, fs[0], fs[1], fs[2], 1.0F);
+            }
 
             renderLayer = image.getRenderLayer();
             renderModelPartWithImage(canvas, matrices, vertexConsumers.getBuffer(renderLayer), light, overlay, isBanner, image);
 //            renderModelPartWithImage(canvas, matrices, vertexConsumers.getBuffer(getUniqueSpriteRenderLayer(image.getTexture())), light, overlay, isBanner, image);
             ((VertexConsumerProvider.Immediate) vertexConsumers).draw(renderLayer); //Not necessary but making it explicit makes the rendering code easier to understand
 
+
             renderLayer = DEPTH_ONLY;
             canvas.render(matrices, vertexConsumers.getBuffer(renderLayer), light, overlay);
-            ((VertexConsumerProvider.Immediate) vertexConsumers).draw(DEPTH_ONLY); //Necessary as it could be the final draw call
+            ((VertexConsumerProvider.Immediate) vertexConsumers).draw(renderLayer); //Necessary as it could be the final draw call
             ci.cancel();
         }
     }
@@ -106,8 +107,8 @@ abstract class BannerBlockEntityRendererMixin {
                     float startX = (sizeX - imgWidth) / 2.0f;
                     float startY = (sizeY - imgHeight) / 2.0f;
                     if (!isBanner) {
-                        startX += 1/16.0f;
-                        startY += 1/16.0f;
+                        startX += 1 / 16.0f;
+                        startY += 1 / 16.0f;
                     }
 
                     float endX = sizeX - startX;
@@ -151,11 +152,6 @@ abstract class BannerBlockEntityRendererMixin {
 
     @Inject(at = @At("HEAD"), method = "render")
     void inject_render(BannerBlockEntity bannerBlockEntity, float f, MatrixStack matrixStack, VertexConsumerProvider vertexConsumerProvider, int i, int j, CallbackInfo ci) {
-//        try {
-//            Lemon.latestBanner = new URL("https://i.imgur.com/fUrhss5.png");
-//        } catch (MalformedURLException e) {
-//            e.printStackTrace();
-//        }
         if (bannerBlockEntity instanceof BannerMixinAccessor) {
             Lemon.latestBanner = ((BannerMixinAccessor) bannerBlockEntity).getURL();
         }

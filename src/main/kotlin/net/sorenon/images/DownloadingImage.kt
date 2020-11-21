@@ -58,19 +58,19 @@ class DownloadingImage(var map: HashMap<String, ImagesAPIImpl.ImageEnum>, var ur
                 MemoryUtil.memFree(buffer)
                 if (stream != null) IOUtils.closeQuietly(stream)
             }
-        }, Util.getServerWorkerExecutor())
+        }, Util.getMainWorkerExecutor())
     }
 
     private fun readToBuffer(stream: InputStream, limit: Int): ByteBuffer? {
         var buffer = MemoryUtil.memAlloc(8192)
         val readableByteChannel = Channels.newChannel(stream)
         while (readableByteChannel.read(buffer) != -1) {
+            if (buffer.capacity() >= limit){
+                ImagesMod.LOGGER.info("[Images] Image $url was above the max image size (this can be increased in the config)")
+                map[url.toString()] = ImagesAPIImpl.ImageEnum.TooBig
+                return null
+            }
             if (buffer.remaining() == 0) {
-                if (buffer.capacity() >= limit){
-                    ImagesMod.LOGGER.info("[Images] Image $url was above the max image size (this can be increased in the config)")
-                    map[url.toString()] = ImagesAPIImpl.ImageEnum.Error
-                    return null
-                }
                 buffer = MemoryUtil.memRealloc(buffer, min(buffer.capacity() * 2, limit))
             }
         }

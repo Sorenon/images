@@ -8,14 +8,20 @@ sourceCompatibility = JavaVersion.VERSION_1_8
 targetCompatibility = JavaVersion.VERSION_1_8
 
 archivesBaseName = project.archives_base_name
-version = project.mod_version
+version = project.mod_version + "+" + project.minecraft_version
 group = project.maven_group
-
 minecraft {
 }
 
 repositories {
     maven { url = "http://maven.fabricmc.net/" }
+    maven {
+        url = "https://jitpack.io"
+    }
+    maven {
+        name = "NerdHubMC"
+        url = "https://maven.abusedmaster.xyz/"
+    }
 }
 
 minecraft {
@@ -31,6 +37,8 @@ dependencies {
     // Fabric API. This is technically optional, but you probably want it anyway.
     modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
     modImplementation "net.fabricmc:fabric-language-kotlin:${project.fabric_kotlin_version}"
+    modImplementation "com.github.emilyploszaj:trinkets:${project.trinkets_version}"
+    include "com.github.emilyploszaj:trinkets:${project.trinkets_version}"
 }
 
 processResources {

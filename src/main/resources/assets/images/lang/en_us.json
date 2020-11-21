@@ -6,5 +6,6 @@
   "images.printaxe.description" : "Shift+RClick to open the GUI",
   "images.picture_frame.description" : "Use with a Printaxe to display an image",
   "debug.reload_images.message" : "Reloading all images",
-  "images.open_or_copy_link" : "Click to open or copy image url"
+  "images.open_or_copy_link" : "Click to open or copy image url",
+  "itemGroup.images.item_group" : "Images"
 }

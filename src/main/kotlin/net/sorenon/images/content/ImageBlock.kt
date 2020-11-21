@@ -203,7 +203,7 @@ abstract class ImageBlock(settings: Settings?) : Block(settings), BlockEntityPro
             return PictureFrameBlockEntity()
         }
 
-        override fun buildTooltip(
+        override fun appendTooltip(
             stack: ItemStack,
             world: BlockView?,
             tooltip: MutableList<Text>,
@@ -234,6 +234,7 @@ abstract class ImageBlock(settings: Settings?) : Block(settings), BlockEntityPro
         ): ActionResult {
             val stack = player.getStackInHand(hand)
             if (stack.item is DyeItem) {
+                //Dye background
                 val side = hit.side
                 val blockEntity = (world.getBlockEntity(pos) as PictureFrameBlockEntity).getMaster(side)
                 if (blockEntity != null) {
@@ -246,7 +247,8 @@ abstract class ImageBlock(settings: Settings?) : Block(settings), BlockEntityPro
                     }
                     return ActionResult.success(world.isClient)
                 }
-            } else if (stack.item != ImagesMod.PRINTAXE_ITEM) {
+            } else if (player.mainHandStack.item != ImagesMod.PRINTAXE_ITEM && player.offHandStack.item != ImagesMod.PRINTAXE_ITEM) {
+                //Send url to chat
                 val side = hit.side
                 val blockEntity = (world.getBlockEntity(pos) as PictureFrameBlockEntity).getMaster(side)
                 if (blockEntity != null) {
@@ -261,7 +263,7 @@ abstract class ImageBlock(settings: Settings?) : Block(settings), BlockEntityPro
                                         ClickEvent.Action.OPEN_URL,
                                         url
                                     )
-                                ).setHoverEvent(
+                                ).withHoverEvent(
                                     HoverEvent(
                                         HoverEvent.Action.SHOW_TEXT,
                                         TranslatableText("images.open_or_copy_link")

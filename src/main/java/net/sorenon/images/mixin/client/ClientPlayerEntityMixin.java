@@ -18,9 +18,10 @@ abstract class ClientPlayerEntityMixin extends PlayerEntity {
     @Shadow private boolean usingItem;
     private boolean usingItemSave = false;
 
-    public ClientPlayerEntityMixin(World world, BlockPos blockPos, GameProfile gameProfile) {
-        super(world, blockPos, gameProfile);
+    public ClientPlayerEntityMixin(World world, BlockPos pos, float yaw, GameProfile profile) {
+        super(world, pos, yaw, profile);
     }
+
 
     @Inject(at = @At(value = "HEAD"), method = "tickMovement")
     public void tickMovement(CallbackInfo ci){
