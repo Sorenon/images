@@ -8,6 +8,7 @@ import net.minecraft.nbt.CompoundTag
 import net.minecraft.nbt.NbtHelper
 import net.minecraft.util.math.BlockPos
 import net.minecraft.util.math.Direction
+import net.sorenon.images.api.Print
 import net.sorenon.images.init.ImagesMod
 import java.net.MalformedURLException
 import java.net.URL
@@ -98,8 +99,9 @@ class PictureFrameBlockEntity : BlockEntity(ImagesMod.PICTURE_FRAME_BLOCK_ENTITY
     }
 
     sealed class Face(val uuid: UUID) {
+        class Slave(val masterPos: BlockPos, uuid: UUID) : Face(uuid)
         class Master(
-            var url: URL,
+            val print: Print,
             val height: Int,
             val width: Int,
             val direction: Direction?,
@@ -107,14 +109,12 @@ class PictureFrameBlockEntity : BlockEntity(ImagesMod.PICTURE_FRAME_BLOCK_ENTITY
             var colour: Int = 0
         ) : Face(uuid)
 
-        class Slave(val masterPos: BlockPos, uuid: UUID) : Face(uuid)
-
         fun toTag(): CompoundTag {
             val tag = CompoundTag()
             tag.putUuid("id", uuid)
             when (this) {
                 is Master -> {
-                    tag.putString("url", url.toString())
+                    print.serialize(tag)
                     tag.putInt("height", height)
                     tag.putInt("width", width)
                     tag.putInt("colour", colour)
@@ -131,30 +131,27 @@ class PictureFrameBlockEntity : BlockEntity(ImagesMod.PICTURE_FRAME_BLOCK_ENTITY
             fun fromTag(isVertical: Boolean, tag: CompoundTag): Face {
                 val uuid = tag.getUuid("id")
 
-                val url = try {
-                    when {
-                        tag.contains("url", NbtType.STRING) -> URL(tag.getString("url"))
-                        tag.contains("texture", NbtType.STRING) ->
-                            URL("https://i.imgur.com/${tag.getString("texture")}.jpg")
-                        else -> return Slave(NbtHelper.toBlockPos(tag.getCompound("masterPos")), uuid)
+                try {
+                    val print = Print()
+                    print.deserialize(tag)
+                    if (print.url != null) {
+                        val direction = if (isVertical) {
+                            val dir = Direction.byId(tag.getInt("direction"))
+                            if (dir.axis != Direction.Axis.Y) dir else Direction.NORTH
+                        } else null
+
+                        return Master(
+                            print,
+                            tag.getInt("height"),
+                            tag.getInt("width"),
+                            direction,
+                            uuid,
+                            tag.getInt("colour")
+                        )
                     }
                 } catch (_: MalformedURLException) {
-                    return Slave(NbtHelper.toBlockPos(tag.getCompound("masterPos")), uuid)
                 }
-
-                val direction = if (isVertical) {
-                    val dir = Direction.byId(tag.getInt("direction"))
-                    if (dir.axis != Direction.Axis.Y) dir else Direction.NORTH
-                } else null
-
-                return Master(
-                    url,
-                    tag.getInt("height"),
-                    tag.getInt("width"),
-                    direction,
-                    uuid,
-                    tag.getInt("colour")
-                )
+                return Slave(NbtHelper.toBlockPos(tag.getCompound("masterPos")), uuid)
             }
         }
     }

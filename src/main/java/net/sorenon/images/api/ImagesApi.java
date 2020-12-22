@@ -11,7 +11,6 @@ public interface ImagesApi {
         return ImagesModClient.Companion.getImageDB();
     }
 
-
     @Nullable
     DownloadedImage getDownloadedImage(URL url);
 
@@ -29,6 +28,7 @@ public interface ImagesApi {
      * Returns a square placeholder image to replace a DownloadedImage with the matching image state
      * LOADING -> loading_image.png
      * BROKEN  -> bad_image.png
+     * TOO_BIG  -> image_too_big.png
      * NULL    -> MISSINGNO
      */
     DownloadedImage getPlaceholderForState(ImageState state);

@@ -16,11 +16,11 @@ class ImagesAPIImpl : ImagesApi {
         private val nullPlaceholder =
             PlaceholderImage(MissingSprite.getMissingSpriteId(), ImagesApi.ImageState.NULL)
         private val loadingPlaceholder =
-            PlaceholderImage(Identifier("images", "loading_image.png"), ImagesApi.ImageState.LOADING)
+            PlaceholderImage(Identifier("images", "textures/image_placeholders/loading_image.png"), ImagesApi.ImageState.LOADING)
         private val errorPlaceholder =
-            PlaceholderImage(Identifier("images", "bad_image.png"), ImagesApi.ImageState.BROKEN)
+            PlaceholderImage(Identifier("images", "textures/image_placeholders/bad_image.png"), ImagesApi.ImageState.BROKEN)
         private val tooBigPlaceholder =
-            PlaceholderImage(Identifier("images", "image_too_big.png"), ImagesApi.ImageState.BROKEN)
+            PlaceholderImage(Identifier("images", "textures/image_placeholders/image_too_big.png"), ImagesApi.ImageState.TOO_BIG)
     }
 
     private var imageCache = hashMapOf<String, ImageEnum>()

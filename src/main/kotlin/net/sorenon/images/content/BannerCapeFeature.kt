@@ -22,6 +22,8 @@ import net.minecraft.item.BlockItem
 import net.minecraft.item.ItemStack
 import net.minecraft.util.math.MathHelper
 import net.sorenon.images.accessor.Lemon
+import net.sorenon.images.init.ImagesComponents
+import net.sorenon.images.init.ImagesComponents.Companion.PRINTABLE
 import net.sorenon.images.init.ImagesMod
 import java.net.MalformedURLException
 import java.net.URL
@@ -109,14 +111,7 @@ class BannerCapeFeature(context: FeatureRendererContext<AbstractClientPlayerEnti
 
                 val color = (item.block as AbstractBannerBlock).color
                 val list = BannerBlockEntity.getPatternListTag(stack)
-                val tag = stack.getSubTag("BlockEntityTag")
-                if (tag != null && tag.contains("sorenon_imageURL", NbtType.STRING)) {
-                    try {
-                        Lemon.latestBanner = URL(tag.getString("sorenon_imageURL"))
-                    } catch (exception: MalformedURLException) {
-                        Lemon.latestBanner = null
-                    }
-                }
+                Lemon.latestBanner = PRINTABLE.get(stack).print.url
 
                 for (capeModel in capeBannerModels) {
                     capeModel.pivotY = this.contextModel.cape.pivotY

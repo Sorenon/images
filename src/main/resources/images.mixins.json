@@ -6,8 +6,11 @@
     "client.BannerBlockEntityMixin",
     "client.BannerBlockEntityRendererMixin",
     "client.BannerItemMixin",
+    "client.BedBlockEntityRendererMixin",
+    "client.BedBlockMixin",
     "client.BuiltinModelItemRendererMixin",
     "client.ClientPlayerEntityMixin",
+    "client.ItemMixin",
     "client.KeyboardMixin",
     "client.MinecraftClientMixin",
     "client.PlayerEntityRendererMixin",
@@ -19,6 +22,10 @@
   "mixins": [
     "BannerBlockEntityMixin",
     "BannerBlockMixin",
-    "BannerItemMixin"
+    "BannerItemMixin",
+    "BedBlockMixin",
+    "BlockItemMixin",
+    "MixinCompoundTag",
+    "ShieldDecorationRecipeMixin"
   ]
 }

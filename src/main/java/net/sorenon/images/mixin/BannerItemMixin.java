@@ -19,7 +19,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(BannerItem.class)
-public class BannerItemMixin extends BlockItem implements Trinket {
+abstract class BannerItemMixin extends BlockItem implements Trinket {
 
     public BannerItemMixin(Block block, Settings settings) {
         super(block, settings);

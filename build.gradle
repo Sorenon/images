@@ -22,7 +22,13 @@ repositories {
         name = "NerdHubMC"
         url = "https://maven.abusedmaster.xyz/"
     }
-}
+    maven {
+        name = "Ladysnake Libs"
+        url = "https://dl.bintray.com/ladysnake/libs"
+    }
+    maven {
+        url "https://www.cursemaven.com"
+    }}
 
 minecraft {
     accessWidener "src/main/resources/images.accesswidener"
@@ -34,11 +40,21 @@ dependencies {
     mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
     modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
 
-    // Fabric API. This is technically optional, but you probably want it anyway.
     modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
     modImplementation "net.fabricmc:fabric-language-kotlin:${project.fabric_kotlin_version}"
+
+//    modCompile "curse.maven:hwyla-253449:3033615" //API
+    modCompile "curse.maven:hwyla-253449:3033613" //MAIN
+
     modImplementation "com.github.emilyploszaj:trinkets:${project.trinkets_version}"
     include "com.github.emilyploszaj:trinkets:${project.trinkets_version}"
+
+    modApi "io.github.onyxstudios.Cardinal-Components-API:cardinal-components-base:${project.cc_version}"
+    modApi "io.github.onyxstudios.Cardinal-Components-API:cardinal-components-item:${project.cc_version}"
+    modApi "io.github.onyxstudios.Cardinal-Components-API:cardinal-components-block:${project.cc_version}"
+    include "io.github.onyxstudios.Cardinal-Components-API:cardinal-components-base:${project.cc_version}"
+    include "io.github.onyxstudios.Cardinal-Components-API:cardinal-components-item:${project.cc_version}"
+    include "io.github.onyxstudios.Cardinal-Components-API:cardinal-components-block:${project.cc_version}"
 }
 
 processResources {

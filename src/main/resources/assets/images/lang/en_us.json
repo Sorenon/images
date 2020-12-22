@@ -7,5 +7,12 @@
   "images.picture_frame.description" : "Use with a Printaxe to display an image",
   "debug.reload_images.message" : "Reloading all images",
   "images.open_or_copy_link" : "Click to open or copy image url",
-  "itemGroup.images.item_group" : "Images"
+  "images.copy_player" : "Click to copy player uuid",
+  "images.copied_image_player" : "Copied image printed by %s to printaxe",
+  "images.copied_image" : "Copied image to printaxe",
+  "images.printed_by" : "Printed by: %s",
+  "images.printed_by_offline" : "Printed by offline player",
+  "images.sneak_for_more" : "<Sneak For More Info>",
+  "itemGroup.images.item_group" : "Images",
+  "debug.images.help" :  "F3 + V or F3 + T = Refresh all downloaded images"
 }

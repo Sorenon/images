@@ -13,6 +13,7 @@ import net.minecraft.item.BlockItem
 import net.minecraft.item.Item
 import net.minecraft.item.ItemGroup
 import net.minecraft.item.ItemStack
+import net.minecraft.particle.DefaultParticleType
 import net.minecraft.sound.BlockSoundGroup
 import net.minecraft.sound.SoundEvents
 import net.minecraft.util.Hand
@@ -27,11 +28,14 @@ import org.apache.logging.log4j.Logger
 import java.net.URI
 import java.net.URL
 import java.util.function.Supplier
+import dev.onyxstudios.cca.api.v3.component.ComponentKey
+import dev.onyxstudios.cca.api.v3.component.ComponentRegistry
+import net.sorenon.images.api.PrintableComponent
+
 
 class ImagesMod : ModInitializer {
     companion object {
         val LOGGER: Logger = LogManager.getLogger("images")
-
         val C2S_SET_TEXTURE = Identifier("images", "set")
         val S2C_OPEN_SCREEN = Identifier("images", "open_screen")
         val S2C_PRINT_BOOM = Identifier("images", "particles")
@@ -69,7 +73,7 @@ class ImagesMod : ModInitializer {
             PICTURE_FRAME_BLOCK
         ).build(null)
 
-        val PRINTAXE_PARTICLES = FabricParticleTypes.simple()
+        val PRINTAXE_PARTICLES: DefaultParticleType = FabricParticleTypes.simple()
 
         fun sanitizeURL(string: String): URL? {
             return try {

@@ -1,6 +1,8 @@
 package net.sorenon.images.mixin.client;
 
 import com.mojang.datafixers.util.Pair;
+import dev.onyxstudios.cca.api.v3.block.BlockComponents;
+import it.unimi.dsi.fastutil.objects.ObjectListIterator;
 import net.minecraft.block.entity.BannerBlockEntity;
 import net.minecraft.block.entity.BannerPattern;
 import net.minecraft.client.model.ModelPart;
@@ -10,14 +12,16 @@ import net.minecraft.client.render.item.ItemRenderer;
 import net.minecraft.client.util.SpriteIdentifier;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.client.util.math.Vector3f;
+import net.minecraft.client.util.math.Vector4f;
 import net.minecraft.util.DyeColor;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Matrix3f;
 import net.minecraft.util.math.Matrix4f;
-import net.sorenon.images.accessor.BannerMixinAccessor;
 import net.sorenon.images.accessor.Lemon;
 import net.sorenon.images.api.DownloadedImage;
 import net.sorenon.images.api.ImagesApi;
+import net.sorenon.images.api.PrintableComponent;
+import net.sorenon.images.init.ImagesComponents;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -55,6 +59,11 @@ abstract class BannerBlockEntityRendererMixin {
 
             /*
                 This is all rather hacky atm but it's the only reliable way I can think of to render all the layers without causing artifacts or performance issues
+
+                1. Render base sprite
+                2. Render patterns
+                3. Render image
+                4. Render depth layer
              */
 
             RenderLayer renderLayer = getUniqueRenderLayer(baseSprite.getAtlasId());
@@ -70,9 +79,7 @@ abstract class BannerBlockEntityRendererMixin {
 
             renderLayer = image.getRenderLayer();
             renderModelPartWithImage(canvas, matrices, vertexConsumers.getBuffer(renderLayer), light, overlay, isBanner, image);
-//            renderModelPartWithImage(canvas, matrices, vertexConsumers.getBuffer(getUniqueSpriteRenderLayer(image.getTexture())), light, overlay, isBanner, image);
             ((VertexConsumerProvider.Immediate) vertexConsumers).draw(renderLayer); //Not necessary but making it explicit makes the rendering code easier to understand
-
 
             renderLayer = DEPTH_ONLY;
             canvas.render(matrices, vertexConsumers.getBuffer(renderLayer), light, overlay);
@@ -152,8 +159,9 @@ abstract class BannerBlockEntityRendererMixin {
 
     @Inject(at = @At("HEAD"), method = "render")
     void inject_render(BannerBlockEntity bannerBlockEntity, float f, MatrixStack matrixStack, VertexConsumerProvider vertexConsumerProvider, int i, int j, CallbackInfo ci) {
-        if (bannerBlockEntity instanceof BannerMixinAccessor) {
-            Lemon.latestBanner = ((BannerMixinAccessor) bannerBlockEntity).getURL();
+        PrintableComponent component = BlockComponents.get(ImagesComponents.getPRINTABLE(), bannerBlockEntity);
+        if (component != null) {
+            Lemon.latestBanner = component.getPrint().url;
         }
     }
 }

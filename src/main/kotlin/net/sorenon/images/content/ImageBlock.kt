@@ -11,11 +11,15 @@ import net.minecraft.item.DyeItem
 import net.minecraft.item.ItemPlacementContext
 import net.minecraft.item.ItemStack
 import net.minecraft.loot.context.LootContext
+import net.minecraft.network.MessageType
+import net.minecraft.network.packet.s2c.play.GameMessageS2CPacket
+import net.minecraft.server.network.ServerPlayerEntity
 import net.minecraft.state.StateManager
 import net.minecraft.state.property.BooleanProperty
 import net.minecraft.state.property.Properties
 import net.minecraft.state.property.Properties.WATERLOGGED
-import net.minecraft.text.*
+import net.minecraft.text.Text
+import net.minecraft.text.TranslatableText
 import net.minecraft.util.ActionResult
 import net.minecraft.util.Formatting
 import net.minecraft.util.Hand
@@ -252,27 +256,14 @@ abstract class ImageBlock(settings: Settings?) : Block(settings), BlockEntityPro
                 val side = hit.side
                 val blockEntity = (world.getBlockEntity(pos) as PictureFrameBlockEntity).getMaster(side)
                 if (blockEntity != null) {
-                    if (world.isClient) {
-                        val face = blockEntity.faces[side] as PictureFrameBlockEntity.Face.Master
-                        val url = face.url.toString()
-
-                        val text: Text = Texts.bracketed(LiteralText(url))
-                            .styled { style: Style ->
-                                style.withClickEvent(
-                                    ClickEvent(
-                                        ClickEvent.Action.OPEN_URL,
-                                        url
-                                    )
-                                ).withHoverEvent(
-                                    HoverEvent(
-                                        HoverEvent.Action.SHOW_TEXT,
-                                        TranslatableText("images.open_or_copy_link")
-                                    )
-                                )
-                            }.formatted(Formatting.GREEN)
-                        player.sendMessage(text, false)
+                    val face = blockEntity.faces[side] as PictureFrameBlockEntity.Face.Master
+                    val print = face.print
+                    if (print.url != null) {
+                        if (player is ServerPlayerEntity) {
+                            player.networkHandler.sendPacket(GameMessageS2CPacket(print.toText(world), MessageType.CHAT, Util.NIL_UUID))
+                        }
+                        return ActionResult.success(world.isClient)
                     }
-                    return ActionResult.success(world.isClient)
                 }
             }
 

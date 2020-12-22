@@ -1,24 +1,18 @@
 package net.sorenon.images.mixin;
 
 
+import dev.onyxstudios.cca.api.v3.block.BlockComponents;
 import net.minecraft.block.AbstractBannerBlock;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.BannerItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.loot.context.LootContext;
 import net.minecraft.loot.context.LootContextParameters;
-import net.minecraft.text.*;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.Formatting;
-import net.minecraft.util.Hand;
-import net.minecraft.util.hit.BlockHitResult;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
-import net.sorenon.images.accessor.BannerMixinAccessor;
-import net.sorenon.images.init.ImagesMod;
+import net.minecraft.nbt.CompoundTag;
+import net.sorenon.images.api.Print;
+import net.sorenon.images.api.PrintableComponent;
+import net.sorenon.images.init.ImagesComponents;
 import org.spongepowered.asm.mixin.Mixin;
 
 import java.net.URL;
@@ -34,13 +28,13 @@ abstract class BannerBlockMixin extends Block {
     public List<ItemStack> getDroppedStacks(BlockState state, LootContext.Builder builder) {
         List<ItemStack> stacks = super.getDroppedStacks(state, builder);
         BlockEntity blockEntity = builder.get(LootContextParameters.BLOCK_ENTITY);
-        if (blockEntity instanceof BannerMixinAccessor) {
-            URL url = ((BannerMixinAccessor) blockEntity).getURL();
-            if (url != null) {
-                for (ItemStack stack : stacks){
-                    if (stack.getItem() instanceof BannerItem) {
-                        stack.getOrCreateSubTag("BlockEntityTag").putString("sorenon_imageURL", url.toString());
-                    }
+
+        PrintableComponent component = BlockComponents.get(ImagesComponents.getPRINTABLE(), blockEntity);
+        if (component != null) {
+            Print print = component.getPrint();
+            if (print.url != null) {
+                for (ItemStack stack : stacks) {
+                    ImagesComponents.getPRINTABLE().maybeGet(stack).ifPresent(c -> c.setPrint(print.copy()));
                 }
             }
         }
@@ -48,35 +42,23 @@ abstract class BannerBlockMixin extends Block {
         return stacks;
     }
 
-    @Override
-    public ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit) {
-        ItemStack stack = player.getStackInHand(hand);
-        if (stack.getItem() != ImagesMod.Companion.getPRINTAXE_ITEM()) {
-            BlockEntity blockEntity = world.getBlockEntity(pos);
-            if (blockEntity instanceof BannerMixinAccessor) {
-                URL url = ((BannerMixinAccessor) blockEntity).getURL();
-                if (url != null) {
-                    String urlStr = url.toString();
-                    if (world.isClient) {
-                        Text text = Texts.bracketed(new LiteralText(urlStr)).styled(style -> style.withClickEvent(
-                                new ClickEvent(
-                                        ClickEvent.Action.OPEN_URL,
-                                        urlStr
-                                )
-                        ).withHoverEvent(
-                                new HoverEvent(
-                                        HoverEvent.Action.SHOW_TEXT,
-                                        new TranslatableText("images.open_or_copy_link")
-                                )
-                        )).formatted(Formatting.GREEN);
-
-                        player.sendMessage(text, false);
-                    }
-                    return ActionResult.success(world.isClient);
-                }
-            }
-        }
-
-        return super.onUse(state, world, pos, player, hand, hit);
-    }
+//    @Override
+//    public ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit) {
+//        ItemStack stack = player.getStackInHand(hand);
+//        if (stack.getItem() != ImagesMod.Companion.getPRINTAXE_ITEM()) {
+//            BlockEntity blockEntity = world.getBlockEntity(pos);
+//            if (blockEntity instanceof Printable) {
+//                Printable.Print print = ((Printable) blockEntity).getPrint();
+//                if (print.url != null) {
+//                    if (player instanceof ServerPlayerEntity) {
+//                        GameMessageS2CPacket gameMessageS2CPacket = new GameMessageS2CPacket(print.toText(world), MessageType.CHAT, Util.NIL_UUID);
+//                        ((ServerPlayerEntity) player).networkHandler.sendPacket(gameMessageS2CPacket);
+//                    }
+//                    return ActionResult.success(world.isClient);
+//                }
+//            }
+//        }
+//
+//        return super.onUse(state, world, pos, player, hand, hit);
+//    }
 }

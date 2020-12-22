@@ -9,6 +9,9 @@ import net.minecraft.util.Hand;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Matrix4f;
 import net.minecraft.util.math.Vec3d;
+import net.sorenon.images.accessor.Lemon;
+import net.sorenon.images.api.DownloadedImage;
+import net.sorenon.images.api.ImagesApi;
 import net.sorenon.images.content.ImageBlock;
 import net.sorenon.images.content.PictureFrameRenderer;
 import net.sorenon.images.content.PrintAxe;
@@ -19,6 +22,8 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Objects;
 
 @Mixin(WorldRenderer.class)
