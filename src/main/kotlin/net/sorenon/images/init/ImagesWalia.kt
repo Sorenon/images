@@ -19,7 +19,7 @@ class ImagesWalia : IWailaPlugin {
     class DefaultPrintedComponentProvider : IComponentProvider {
         override fun appendBody(tooltip: MutableList<Text>, accessor: IDataAccessor, config: IPluginConfig) {
             val printable = BlockComponents.get(ImagesComponents.PRINTABLE, accessor.blockEntity) ?: return
-            printable.print.appendTooltip(tooltip, accessor.world, accessor.player.isSneaking, 450)
+            printable.print.appendTooltip(tooltip, accessor.player.isSneaking, 450, true)
         }
     }
 
@@ -28,7 +28,7 @@ class ImagesWalia : IWailaPlugin {
             val masterBlockEntity = (accessor.blockEntity as PictureFrameBlockEntity).getMaster(accessor.side)
             if (masterBlockEntity != null) {
                 val face = masterBlockEntity.faces[accessor.side] as PictureFrameBlockEntity.Face.Master
-                face.print.appendTooltip(tooltip, accessor.world, accessor.player.isSneaking, 450)
+                face.print.appendTooltip(tooltip, accessor.player.isSneaking, 450, true)
             }
         }
     }

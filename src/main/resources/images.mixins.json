@@ -16,9 +16,6 @@
     "client.PlayerEntityRendererMixin",
     "client.WorldRendererMixin"
   ],
-  "injectors": {
-    "defaultRequire": 1
-  },
   "mixins": [
     "BannerBlockEntityMixin",
     "BannerBlockMixin",

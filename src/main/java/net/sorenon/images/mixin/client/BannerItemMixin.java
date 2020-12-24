@@ -23,11 +23,11 @@ import java.util.List;
 @Mixin(BannerItem.class)
 abstract class BannerItemMixin {
 
-    @Inject(at = @At("HEAD"), method = "appendTooltip")
-    void inject_appendTooltip(ItemStack stack, World world, List<Text> tooltip, TooltipContext context, CallbackInfo ci){
+    @Inject(at = @At("HEAD"), method = "appendBannerTooltip")
+    private static void inject_appendBannerTooltip(ItemStack stack, List<Text> tooltip, CallbackInfo ci){
         PrintableComponent itemComponent = ImagesComponents.getPRINTABLE().get(stack);
         MinecraftClient mc = MinecraftClient.getInstance();
         boolean isSneaking = InputUtil.isKeyPressed(mc.getWindow().getHandle(), InputUtil.fromTranslationKey(mc.options.keySneak.getBoundKeyTranslationKey()).getCode());
-        itemComponent.getPrint().appendTooltip(tooltip, world, isSneaking, 200);
+        itemComponent.getPrint().appendTooltip(tooltip, isSneaking, 200, false);
     }
 }

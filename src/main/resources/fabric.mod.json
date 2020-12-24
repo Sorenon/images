@@ -2,7 +2,6 @@
   "schemaVersion": 1,
   "id": "images",
   "version": "${version}",
-
   "name": "Images",
   "description": "Adds methods for displaying images in game",
   "authors": [
@@ -11,6 +10,11 @@
   "icon": "assets/images/pack.png",
   "accessWidener" : "images.accesswidener",
   "environment": "*",
+  "contact": {
+    "issues": "https://github.com/Sorenon/images/issues",
+    "homepage": "https://modrinth.com/mod/images",
+    "sources": "https://github.com/Sorenon/images"
+  },
   "entrypoints": {
     "main": [
       "net.sorenon.images.init.ImagesMod"
@@ -20,7 +24,8 @@
     ],
     "cardinal-components": [
       "net.sorenon.images.init.ImagesComponents"
-    ]
+    ],
+    "modmenu": [ "net.sorenon.images.init.ImagesModMenuConfig" ]
   },
   "mixins": [
     "images.mixins.json"
@@ -35,7 +40,9 @@
     "canvas": "*"
   },
   "suggests": {
-    "walia" : ">=1.9.22"
+    "walia" : ">=1.9.22",
+    "modmenu" : ">=1.14.13",
+    "cloth-config2" : ">=4.8.3"
   },
   "custom": {
     "cardinal-components": [

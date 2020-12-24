@@ -26,14 +26,12 @@ abstract class BuiltinModelItemRendererMixin {
     private BedBlockEntity renderBed;
 
     @Inject(at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/block/entity/BannerBlockEntityRenderer;renderCanvas(Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/VertexConsumerProvider;IILnet/minecraft/client/model/ModelPart;Lnet/minecraft/client/util/SpriteIdentifier;ZLjava/util/List;Z)V"), method = "render")
-    void inject_render(ItemStack stack, ModelTransformation.Mode mode, MatrixStack matrixStack, VertexConsumerProvider vertexConsumerProvider, int i, int j, CallbackInfo ci) {
-        //For shield
+    void inject_renderShield(ItemStack stack, ModelTransformation.Mode mode, MatrixStack matrixStack, VertexConsumerProvider vertexConsumerProvider, int i, int j, CallbackInfo ci) {
         Lemon.latestBanner = ImagesComponents.getPRINTABLE().get(stack).getPrint().url;
     }
 
     @Inject(at = @At(value = "INVOKE", target = "Lnet/minecraft/block/entity/BedBlockEntity;setColor(Lnet/minecraft/util/DyeColor;)V"), method = "render")
-    void render(ItemStack stack, ModelTransformation.Mode mode, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, int overlay, CallbackInfo ci) {
-        //For bed
+    void inject_renderBed(ItemStack stack, ModelTransformation.Mode mode, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, int overlay, CallbackInfo ci) {
         ImagesComponents.getPRINTABLE().maybeGet(stack).ifPresent(stackComponent -> {
             PrintableComponent component = BlockComponents.get(ImagesComponents.getPRINTABLE(), renderBed);
             if (component instanceof BedPrintableComponent) {

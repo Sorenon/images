@@ -10,16 +10,11 @@ import net.sorenon.images.ImagesAPIImpl
 import net.sorenon.images.content.PictureFrameRenderer
 import net.sorenon.images.content.WallpaperRenderer
 import net.sorenon.images.content.gui.SelectImageScreen
-import org.lwjgl.system.MemoryUtil
-import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.IOException
-import java.net.URL
-import java.nio.channels.Channels
 import java.util.*
 import kotlin.math.max
-import kotlin.math.min
 
 class ImagesModClient : ClientModInitializer {
     companion object {
@@ -27,17 +22,20 @@ class ImagesModClient : ClientModInitializer {
 
         var CFG_MAX_SIZE = 1024 * 1024 * 2
         var CFG_IDLE_TICKS = 2 * 60 * 20
+        var CFG_WAILA_URL = true
+        var CFG_WAILA_PLAYER = false
+        var CFG_TOOLTIP_URL = true
+        var CFG_TOOLTIP_PLAYER = true
 
         fun reloadConfig() {
-            val configDir = FabricLoader.getInstance().configDirectory
+            val configFile = FabricLoader.getInstance().configDir.resolve("images.properties").toFile()
 
-            if (!configDir.exists()) {
-                if (!configDir.mkdir()) {
-                    ImagesMod.LOGGER.warn("[Images] Could not create configuration directory: " + configDir.absolutePath)
+            if (!configFile.exists()) {
+                if (!configFile.mkdir()) {
+                    ImagesMod.LOGGER.warn("[Images] Could not create config file: " + configFile.absolutePath)
                 }
             }
 
-            val configFile = File(configDir, "images.properties")
             val properties = Properties()
 
             if (configFile.exists()) {
@@ -53,14 +51,39 @@ class ImagesModClient : ClientModInitializer {
 
             CFG_MAX_SIZE = max((properties["maxImageSize"] as? String)?.toIntOrNull() ?: 1024 * 1024 * 2, 0)
             CFG_IDLE_TICKS = max((properties["imageIdleTicks"] as? String)?.toIntOrNull() ?: 2 * 60 * 20, 0)
+            CFG_WAILA_URL = (properties["wailaURL"] as? String)?.toBoolean() ?: true
+            CFG_WAILA_PLAYER = (properties["wailaPlayer"] as? String)?.toBoolean() ?: false
+            CFG_TOOLTIP_URL = (properties["tooltipURL"] as? String)?.toBoolean() ?: true
+            CFG_TOOLTIP_PLAYER = (properties["tooltipPlayer"] as? String)?.toBoolean() ?: true
+        }
+
+        fun saveConfig() {
+            val configFile = FabricLoader.getInstance().configDir.resolve("images.properties").toFile()
+
+            if (!configFile.exists()) {
+                if (!configFile.mkdir()) {
+                    ImagesMod.LOGGER.warn("[Images] Could not create config file: " + configFile.absolutePath)
+                }
+            }
+
+            val properties = Properties()
+
             properties["maxImageSize"] = CFG_MAX_SIZE.toString()
             properties["imageIdleTicks"] = CFG_IDLE_TICKS.toString()
+            properties["wailaURL"] = CFG_WAILA_URL.toString()
+            properties["wailaPlayer"] = CFG_WAILA_PLAYER.toString()
+            properties["tooltipURL"] = CFG_TOOLTIP_URL.toString()
+            properties["tooltipPlayer"] = CFG_TOOLTIP_PLAYER.toString()
 
             try {
-                FileOutputStream(configFile).use { stream -> properties.store(stream,
-                    "Images properties file" +
-                        "\nmaxImageSize: The maximum allowed file size for an image in bytes (Default 2MB)" +
-                        "\nimageIdleTicks: The amount time of not being used until an image is deleted in ticks (Default 2min)") }
+                FileOutputStream(configFile).use { stream ->
+                    properties.store(
+                        stream,
+                        "Images properties file" +
+                                "\nmaxImageSize: The maximum allowed file size for an image in bytes (Default 2MB)" +
+                                "\nimageIdleTicks: The amount of ticks an image can go unused before being deleted (Default 2min)"
+                    )
+                }
             } catch (e: IOException) {
                 ImagesMod.LOGGER.warn("[Images] Could not store property file '" + configFile.absolutePath + "'", e)
             }
@@ -95,5 +118,6 @@ class ImagesModClient : ClientModInitializer {
             }
         }
         reloadConfig()
+        saveConfig()
     }
 }

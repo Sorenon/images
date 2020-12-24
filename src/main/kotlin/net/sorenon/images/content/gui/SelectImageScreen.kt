@@ -20,7 +20,7 @@ import java.net.URL
 import java.util.function.Predicate
 
 class SelectImageScreen(private val currentID: String) : Screen(TranslatableText("selectImage.title")){
-    private var urlInput: TextFieldWidget? = null
+    private lateinit var urlInput: TextFieldWidget
     private var doneButton: ButtonWidget? = null
     private val addressTextFilter =
         Predicate { string: String ->
@@ -34,20 +34,20 @@ class SelectImageScreen(private val currentID: String) : Screen(TranslatableText
     override fun init() {
         super.init()
         urlInput = TextFieldWidget(textRenderer, 10, height / 2 - 20, width - 20, 20, LiteralText(""))
-        urlInput!!.setMaxLength(128)
-        urlInput!!.setTextPredicate(addressTextFilter)
-        urlInput!!.setChangedListener {
+        urlInput.setMaxLength(128)
+        urlInput.setTextPredicate(addressTextFilter)
+        urlInput.setChangedListener {
             if (ImagesMod.sanitizeURL(it) != null) {
-                urlInput!!.setEditableColor(14737632)
+                urlInput.setEditableColor(14737632)
                 doneButton?.active = true
             }
             else {
-                urlInput!!.setEditableColor(16733525)
+                urlInput.setEditableColor(16733525)
                 doneButton?.active = it.isEmpty()
             }
         }
-        urlInput!!.text = currentID
-        urlInput!!.active = true
+        urlInput.text = currentID
+        urlInput.active = true
         this.children.add(urlInput)
         this.setInitialFocus(urlInput)
 
@@ -60,7 +60,7 @@ class SelectImageScreen(private val currentID: String) : Screen(TranslatableText
                 ScreenTexts.DONE
             ) {
                 val buf = PacketByteBuf(Unpooled.buffer())
-                buf.writeString(urlInput!!.text)
+                buf.writeString(urlInput.text)
                 ClientSidePacketRegistry.INSTANCE.sendToServer(ImagesMod.C2S_SET_TEXTURE, buf)
                 onClose()
             }
@@ -74,6 +74,15 @@ class SelectImageScreen(private val currentID: String) : Screen(TranslatableText
                 ScreenTexts.CANCEL
             ) { onClose() }
         )
+        addButton(
+            ButtonWidget(
+                width / 2 - 100,
+                height / 2 + 40 + 24 + 24,
+                50,
+                20,
+                TranslatableText("images.clear")
+            ) { urlInput.text = "" }
+        )
     }
 
     override fun keyPressed(keyCode: Int, scanCode: Int, modifiers: Int): Boolean {
@@ -85,13 +94,13 @@ class SelectImageScreen(private val currentID: String) : Screen(TranslatableText
 
     override fun tick() {
         super.tick()
-        urlInput!!.tick()
+        urlInput.tick()
     }
 
     override fun render(matrices: MatrixStack, mouseX: Int, mouseY: Int, delta: Float) {
         this.renderBackground(matrices)
         super.render(matrices, mouseX, mouseY, delta)
         drawCenteredText(matrices, textRenderer, title, width / 2, height / 2 - 70, 16777215)
-        urlInput!!.render(matrices, mouseX, mouseY, delta)
+        urlInput.render(matrices, mouseX, mouseY, delta)
     }
 }

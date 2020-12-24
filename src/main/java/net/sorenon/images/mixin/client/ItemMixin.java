@@ -23,7 +23,7 @@ public class ItemMixin {
         ImagesComponents.getPRINTABLE().maybeGet(stack).ifPresent(itemComponent -> {
             MinecraftClient mc = MinecraftClient.getInstance();
             boolean isSneaking = InputUtil.isKeyPressed(mc.getWindow().getHandle(), InputUtil.fromTranslationKey(mc.options.keySneak.getBoundKeyTranslationKey()).getCode());
-            itemComponent.getPrint().appendTooltip(tooltip, world, isSneaking, 200);
+            itemComponent.getPrint().appendTooltip(tooltip, isSneaking, 200, false);
         });
     }
 }

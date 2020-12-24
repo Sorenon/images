@@ -44,11 +44,15 @@ class BedPrintableComponent(val blockEntity: BedBlockEntity) : PrintableComponen
         if (isHead()) {
             this.print = print
             ImagesComponents.PRINTABLE.sync(blockEntity)
+            return true
         }
 
-        val component = BlockComponents.get(ImagesComponents.PRINTABLE, getHead() ?: return false) ?: return false
+        val headEntity = getHead() ?: return false
+        val component = BlockComponents.get(ImagesComponents.PRINTABLE, headEntity) ?: return false
         if (component is BedPrintableComponent && component.isHead()) {
-            return component.setPrint(print)
+            component.setPrintRaw(print)
+            ImagesComponents.PRINTABLE.sync(headEntity)
+            return true
         }
         return false
     }

@@ -28,7 +28,8 @@ repositories {
     }
     maven {
         url "https://www.cursemaven.com"
-    }}
+    }
+}
 
 minecraft {
     accessWidener "src/main/resources/images.accesswidener"
@@ -43,10 +44,19 @@ dependencies {
     modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
     modImplementation "net.fabricmc:fabric-language-kotlin:${project.fabric_kotlin_version}"
 
-//    modCompile "curse.maven:hwyla-253449:3033615" //API
-    modCompile "curse.maven:hwyla-253449:3033613" //MAIN
+    modCompile ("curse.maven:hwyla-253449:3033613")  {
+        exclude group: "net.fabricmc.fabric-api"
+    }
+    modCompile ("me.shedaniel.cloth:config-2:${project.cloth_config_version}")  {
+        exclude group: "net.fabricmc.fabric-api"
+    }
+    modCompile ("io.github.prospector:modmenu:${project.mod_menu_version}")  {
+        exclude group: "net.fabricmc.fabric-api"
+    }
+    modImplementation ("com.github.emilyploszaj:trinkets:${project.trinkets_version}")  {
+        exclude group: "net.fabricmc.fabric-api"
+    }
 
-    modImplementation "com.github.emilyploszaj:trinkets:${project.trinkets_version}"
     include "com.github.emilyploszaj:trinkets:${project.trinkets_version}"
 
     modApi "io.github.onyxstudios.Cardinal-Components-API:cardinal-components-base:${project.cc_version}"

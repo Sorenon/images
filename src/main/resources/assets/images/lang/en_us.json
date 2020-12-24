@@ -14,5 +14,15 @@
   "images.printed_by_offline" : "Printed by offline player",
   "images.sneak_for_more" : "<Sneak For More Info>",
   "itemGroup.images.item_group" : "Images",
-  "debug.images.help" :  "F3 + V or F3 + T = Refresh all downloaded images"
+  "debug.images.help" :  "F3 + V or F3 + T = Refresh all downloaded images",
+  "title.images.config" : "Images Config",
+  "option.images.imageIdleTicks" : "Max Idle Image Ticks",
+  "option.images.imageIdleTicks.tooltip" : "The amount of ticks an image can go unused before being deleted",
+  "option.images.maxImageSize" : "Max Image Size",
+  "option.images.maxImageSize.tooltip" : "The max file size of an image in bytes",
+  "option.images.tooltipURL" : "Show url preview in item tooltip",
+  "option.images.tooltipPlayer" : "Show printer in item tooltip",
+  "option.images.wailaURL" : "Show url preview in waila",
+  "option.images.wailaPlayer" : "Show printer in waila",
+  "images.clear" : "Clear"
 }

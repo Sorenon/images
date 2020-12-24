@@ -119,14 +119,13 @@ abstract class BedBlockEntityRendererMixin {
         matrix.push(); //Start left (top down)
         matrix.translate(-offset, 0.0, 0.0);
         matrix4f = matrix.peek().getModel();
-        float startXL = startX - offset;
-        float endXL = Math.min(endX, leftEndX);
+        float startXL = Math.max(endX - startXR, -offset);
         normal.set(-1, 0, 0);
         normal.transform(matrix.peek().getNormal());
-        vertexConsumer.vertex(matrix4f, 0.0f, topImgHeight + offset, startXL).color(255, 255, 255, 255).texture(startU, endV).overlay(OverlayTexture.DEFAULT_UV).light(light).normal(normal.getX(), normal.getY(), normal.getZ()).next();
-        vertexConsumer.vertex(matrix4f, 0.0f, startY, startXL).color(255, 255, 255, 255).texture(startU, 0.0f).overlay(OverlayTexture.DEFAULT_UV).light(light).normal(normal.getX(), normal.getY(), normal.getZ()).next();
-        vertexConsumer.vertex(matrix4f, 0.0f, startY, endXL).color(255, 255, 255, 255).texture(0.0f, 0.0f).overlay(OverlayTexture.DEFAULT_UV).light(light).normal(normal.getX(), normal.getY(), normal.getZ()).next();
-        vertexConsumer.vertex(matrix4f, 0.0f, topImgHeight + offset, endXL).color(255, 255, 255, 255).texture(0.0f, endV).overlay(OverlayTexture.DEFAULT_UV).light(light).normal(normal.getX(), normal.getY(), normal.getZ()).next();
+        vertexConsumer.vertex(matrix4f, 0.0f, topImgHeight + offset, -offset).color(255, 255, 255, 255).texture(startU, endV).overlay(OverlayTexture.DEFAULT_UV).light(light).normal(normal.getX(), normal.getY(), normal.getZ()).next();
+        vertexConsumer.vertex(matrix4f, 0.0f, startY, -offset).color(255, 255, 255, 255).texture(startU, 0.0f).overlay(OverlayTexture.DEFAULT_UV).light(light).normal(normal.getX(), normal.getY(), normal.getZ()).next();
+        vertexConsumer.vertex(matrix4f, 0.0f, startY, startXL).color(255, 255, 255, 255).texture(0.0f, 0.0f).overlay(OverlayTexture.DEFAULT_UV).light(light).normal(normal.getX(), normal.getY(), normal.getZ()).next();
+        vertexConsumer.vertex(matrix4f, 0.0f, topImgHeight + offset, startXL).color(255, 255, 255, 255).texture(0.0f, endV).overlay(OverlayTexture.DEFAULT_UV).light(light).normal(normal.getX(), normal.getY(), normal.getZ()).next();
         matrix.pop(); //End left
 
         matrix.push(); //Start bottom
@@ -134,10 +133,11 @@ abstract class BedBlockEntityRendererMixin {
         matrix4f = matrix.peek().getModel();
         normal.set(0, 1, 0);
         normal.transform(matrix.peek().getNormal());
-        vertexConsumer.vertex(matrix4f, Math.min(endX, rightStartX) + offset, 0.0f, imgHeight - topImgHeight + offset).color(255, 255, 255, 255).texture(endU, 1.0f).overlay(OverlayTexture.DEFAULT_UV).light(light).normal(normal.getX(), normal.getY(), normal.getZ()).next();
+        float z = Math.max(imgHeight - topImgHeight + offset, 0);
+        vertexConsumer.vertex(matrix4f, Math.min(endX, rightStartX) + offset, 0.0f, z).color(255, 255, 255, 255).texture(endU, 1.0f).overlay(OverlayTexture.DEFAULT_UV).light(light).normal(normal.getX(), normal.getY(), normal.getZ()).next();
         vertexConsumer.vertex(matrix4f, Math.min(endX, rightStartX) + offset, 0.0f, startY).color(255, 255, 255, 255).texture(endU, endV).overlay(OverlayTexture.DEFAULT_UV).light(light).normal(normal.getX(), normal.getY(), normal.getZ()).next();
         vertexConsumer.vertex(matrix4f, Math.max(startX, leftEndX) - offset, 0.0f, startY).color(255, 255, 255, 255).texture(startU, endV).overlay(OverlayTexture.DEFAULT_UV).light(light).normal(normal.getX(), normal.getY(), normal.getZ()).next();
-        vertexConsumer.vertex(matrix4f, Math.max(startX, leftEndX) - offset, 0.0f, imgHeight - topImgHeight + offset).color(255, 255, 255, 255).texture(startU, 1.0f).overlay(OverlayTexture.DEFAULT_UV).light(light).normal(normal.getX(), normal.getY(), normal.getZ()).next();
+        vertexConsumer.vertex(matrix4f, Math.max(startX, leftEndX) - offset, 0.0f, z).color(255, 255, 255, 255).texture(startU, 1.0f).overlay(OverlayTexture.DEFAULT_UV).light(light).normal(normal.getX(), normal.getY(), normal.getZ()).next();
         matrix.pop(); //End bottom
 
         RenderSystem.enableCull();

@@ -3,12 +3,12 @@ package net.sorenon.images.api;
 import net.fabricmc.fabric.api.util.NbtType;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextHandler;
-import net.minecraft.client.font.TextRenderer;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.text.*;
 import net.minecraft.util.Formatting;
 import net.minecraft.world.World;
+import net.sorenon.images.init.ImagesModClient;
 import org.jetbrains.annotations.Nullable;
 
 import java.net.MalformedURLException;
@@ -93,39 +93,41 @@ public class Print {
         }
     }
 
-    public void appendTooltip(List<Text> tooltip, World world, boolean isSneaking, int maxWidth) {
+    public void appendTooltip(List<Text> tooltip, boolean isSneaking, int maxWidth, boolean waila) {
         if (url == null) return;
-
         String urlStr = url.toString();
         Style urlStyle = Style.EMPTY.withFormatting(Formatting.GREEN);
         Style playerStyle = Style.EMPTY.withFormatting(Formatting.GRAY);
 
         PlayerEntity printerEntity = null;
-        if (player != null) {
-            printerEntity = world.getPlayerByUuid(player);
+        MinecraftClient mc = MinecraftClient.getInstance();
+        if (player != null && mc.world != null) {
+            printerEntity = mc.world.getPlayerByUuid(player);
         }
 
         if (!isSneaking) {
-            boolean more = false;
-            if (urlStr.length() > 24) {
-                urlStr = urlStr.substring(0, 24) + '…';
-                more = true;
+            boolean showURL =
+                    waila && ImagesModClient.Companion.getCFG_WAILA_URL() ||
+                            !waila && ImagesModClient.Companion.getCFG_TOOLTIP_URL();
+            boolean showPlayer =
+                    waila && ImagesModClient.Companion.getCFG_WAILA_PLAYER() ||
+                            !waila && ImagesModClient.Companion.getCFG_TOOLTIP_PLAYER();
+
+            if (showURL) {
+                if (urlStr.length() > 24) {
+                    urlStr = urlStr.substring(0, 24) + '…';
+                }
+                tooltip.add(new LiteralText(urlStr).setStyle(urlStyle));
             }
-            tooltip.add(new LiteralText(urlStr).setStyle(urlStyle));
-            if (player != null) {
+            if (showPlayer && player != null) {
                 if (printerEntity != null) {
                     tooltip.add(new TranslatableText("images.printed_by", printerEntity.getName()).setStyle(playerStyle));
-                }
-                else {
+                } else {
                     tooltip.add(new TranslatableText("images.printed_by_offline").setStyle(playerStyle));
-                    more = true;
                 }
-            }
-            if (more) {
-                tooltip.add(new TranslatableText("images.sneak_for_more").formatted(Formatting.GRAY, Formatting.ITALIC));
             }
         } else {
-            TextHandler textHandler = MinecraftClient.getInstance().textRenderer.getTextHandler();
+            TextHandler textHandler = mc.textRenderer.getTextHandler();
             while (urlStr.length() > 0) {
                 int maxLen = textHandler.getTrimmedLength(urlStr, maxWidth, urlStyle);
                 tooltip.add(new LiteralText(urlStr.substring(0, maxLen)).setStyle(urlStyle));
@@ -133,11 +135,10 @@ public class Print {
             }
 
             if (player != null) {
-                PlayerEntity printer = world.getPlayerByUuid(player);
-                if (printer == null) {
+                if (printerEntity == null) {
                     tooltip.add(new TranslatableText("images.printed_by", player.toString()).setStyle(playerStyle));
                 } else {
-                    tooltip.add(new TranslatableText("images.printed_by", printer.getName()).setStyle(playerStyle));
+                    tooltip.add(new TranslatableText("images.printed_by", printerEntity.getName()).setStyle(playerStyle));
                 }
             }
         }

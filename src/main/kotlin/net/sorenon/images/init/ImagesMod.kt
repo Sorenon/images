@@ -79,7 +79,8 @@ class ImagesMod : ModInitializer {
             return try {
                 val url = URI(string).normalize().toURL()
                 if (url.protocol == "http" || url.protocol == "https") {
-                    URL(url.protocol, url.host, -1, url.path)
+//                    URL(url.protocol, url.host, -1, url.path)
+                    url
                 } else {
                     null
                 }
