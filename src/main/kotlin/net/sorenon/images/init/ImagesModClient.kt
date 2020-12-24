@@ -31,7 +31,7 @@ class ImagesModClient : ClientModInitializer {
             val configFile = FabricLoader.getInstance().configDir.resolve("images.properties").toFile()
 
             if (!configFile.exists()) {
-                if (!configFile.mkdir()) {
+                if (!configFile.createNewFile()) {
                     ImagesMod.LOGGER.warn("[Images] Could not create config file: " + configFile.absolutePath)
                 }
             }

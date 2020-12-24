@@ -29,6 +29,9 @@ repositories {
     maven {
         url "https://www.cursemaven.com"
     }
+    maven { url 'https://dl.bintray.com/kotlin/kotlin-eap' }
+    maven { url 'https://jitpack.io' }
+    mavenCentral()
 }
 
 minecraft {
@@ -47,6 +50,9 @@ dependencies {
     modCompile ("curse.maven:hwyla-253449:3033613")  {
         exclude group: "net.fabricmc.fabric-api"
     }
+//    modCompile ("curse.maven:optifabric-322385:3135133")  {
+//        exclude group: "net.fabricmc.fabric-api"
+//    }
     modCompile ("me.shedaniel.cloth:config-2:${project.cloth_config_version}")  {
         exclude group: "net.fabricmc.fabric-api"
     }
@@ -57,6 +63,8 @@ dependencies {
         exclude group: "net.fabricmc.fabric-api"
     }
 
+
+
     include "com.github.emilyploszaj:trinkets:${project.trinkets_version}"
 
     modApi "io.github.onyxstudios.Cardinal-Components-API:cardinal-components-base:${project.cc_version}"
@@ -65,6 +73,7 @@ dependencies {
     include "io.github.onyxstudios.Cardinal-Components-API:cardinal-components-base:${project.cc_version}"
     include "io.github.onyxstudios.Cardinal-Components-API:cardinal-components-item:${project.cc_version}"
     include "io.github.onyxstudios.Cardinal-Components-API:cardinal-components-block:${project.cc_version}"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
 }
 
 processResources {
@@ -121,3 +130,13 @@ publishing {
 }
 
 compileKotlin.kotlinOptions.jvmTarget = "1.8"
+compileKotlin {
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
+}
+compileTestKotlin {
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
+}
